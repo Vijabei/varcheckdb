@@ -1,0 +1,35 @@
+# vijabei.net Spieldaten
+
+# --- Konfiguration und Bibliothek nicht ausliefern -------------------------
+<FilesMatch "^(config|config\.example)\.php$">
+    Require all denied
+</FilesMatch>
+
+RedirectMatch 404 ^/(lib|db)/.*$
+
+# --- Verzeichnisauflistung aus ---------------------------------------------
+Options -Indexes
+
+# --- Alles Uebrige an den Front-Controller ---------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # In einem Unterverzeichnis muss die Basis angepasst werden; der
+    # Installer meldet in Schritt 1, wenn mod_rewrite nicht verfuegbar ist.
+    # RewriteBase /
+
+    # Vorhandene Dateien und Verzeichnisse unangetastet lassen.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# --- Ohne mod_rewrite wenigstens eine Startseite ---------------------------
+DirectoryIndex index.php index.html
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set Referrer-Policy "same-origin"
+</IfModule>

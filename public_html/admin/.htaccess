@@ -1,0 +1,7 @@
+# Der Adminbereich hat einen eigenen Einstieg und wird nicht umgeschrieben.
+<IfModule mod_rewrite.c>
+    RewriteEngine Off
+</IfModule>
+
+Options -Indexes
+DirectoryIndex index.php

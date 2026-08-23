@@ -1,0 +1,311 @@
+{
+ "quelle": "https://api.openligadb.de/ — Liga rlw-frauen/2026, abgerufen 2026-08-24",
+ "zweck": "Referenz fuer die Feldnamen der OpenLigaDB-kompatiblen Ausgabe.",
+ "getmatchdata": [
+  {
+   "matchID": 86013,
+   "matchDateTime": "2026-08-20T19:00:00",
+   "timeZoneID": null,
+   "leagueId": 5994,
+   "leagueName": "Regionalliga West Frauen",
+   "leagueSeason": 2026,
+   "leagueShortcut": "rlw-frauen",
+   "matchDateTimeUTC": "2026-08-20T17:00:00Z",
+   "group": {
+    "groupName": "1. Spieltag",
+    "groupOrderID": 1,
+    "groupID": 53241
+   },
+   "team1": {
+    "teamId": 7,
+    "teamName": "Borussia Dortmund",
+    "shortName": "Dortmund",
+    "teamIconUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Borussia_Dortmund_logo.svg/960px-Borussia_Dortmund_logo.svg.png",
+    "teamGroupName": null
+   },
+   "team2": {
+    "teamId": 83,
+    "teamName": "DSC Arminia Bielefeld",
+    "shortName": "Bielefeld",
+    "teamIconUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fd/Arminia_Bielefeld_Logo_2021%E2%80%93.svg",
+    "teamGroupName": null
+   },
+   "lastUpdateDateTime": "2026-08-21T21:39:43.37",
+   "matchIsFinished": true,
+   "matchResults": [
+    {
+     "resultID": 127257,
+     "resultName": "Halbzeit",
+     "pointsTeam1": 1,
+     "pointsTeam2": 0,
+     "resultOrderID": 1,
+     "resultTypeID": 1,
+     "resultTypeKind": "HalfTime",
+     "resultDescription": "Ergebnis nach Ende der ersten Halbzeit"
+    },
+    {
+     "resultID": 127258,
+     "resultName": "Endergebnis",
+     "pointsTeam1": 3,
+     "pointsTeam2": 0,
+     "resultOrderID": 2,
+     "resultTypeID": 2,
+     "resultTypeKind": "After90Minutes",
+     "resultDescription": "Ergebnis nach Ende der offiziellen Spielzeit"
+    }
+   ],
+   "goals": [
+    {
+     "goalID": 145761,
+     "scoreTeam1": 1,
+     "scoreTeam2": 0,
+     "matchMinute": 38,
+     "goalGetterID": 15073,
+     "goalGetterName": "Alexandra Popp",
+     "scoringTeamId": 7,
+     "isPenalty": false,
+     "isOwnGoal": false,
+     "isOvertime": false,
+     "comment": "Kopfball"
+    },
+    {
+     "goalID": 145762,
+     "scoreTeam1": 2,
+     "scoreTeam2": 0,
+     "matchMinute": 82,
+     "goalGetterID": 15073,
+     "goalGetterName": "Alexandra Popp",
+     "scoringTeamId": 7,
+     "isPenalty": false,
+     "isOwnGoal": false,
+     "isOvertime": false,
+     "comment": "Kopfball"
+    },
+    {
+     "goalID": 145763,
+     "scoreTeam1": 3,
+     "scoreTeam2": 0,
+     "matchMinute": 89,
+     "goalGetterID": 22547,
+     "goalGetterName": "Ronja Leubner",
+     "scoringTeamId": 7,
+     "isPenalty": false,
+     "isOwnGoal": false,
+     "isOvertime": false,
+     "comment": null
+    }
+   ],
+   "location": {
+    "locationID": 11,
+    "locationCity": "Dortmund",
+    "locationStadium": "Rote Erde "
+   },
+   "numberOfViewers": null
+  },
+  {
+   "matchID": 86014,
+   "matchDateTime": "2026-08-23T13:00:00",
+   "timeZoneID": null,
+   "leagueId": 5994,
+   "leagueName": "Regionalliga West Frauen",
+   "leagueSeason": 2026,
+   "leagueShortcut": "rlw-frauen",
+   "matchDateTimeUTC": "2026-08-23T11:00:00Z",
+   "group": {
+    "groupName": "1. Spieltag",
+    "groupOrderID": 1,
+    "groupID": 53241
+   },
+   "team1": {
+    "teamId": 6565,
+    "teamName": "SGS Essen II",
+    "shortName": "SGS Essen II",
+    "teamIconUrl": "https://derivates.kicker.de/image/fetch/f_webp/w_120%2Ch_120%2Cc_fit%2Cq_auto:best/https://mediadb.kicker.de/2013/fussball/vereine/xxl/21929_2013712124415369.png",
+    "teamGroupName": null
+   },
+   "team2": {
+    "teamId": 1730,
+    "teamName": "SC Fortuna Köln",
+    "shortName": "Fortuna Köln",
+    "teamIconUrl": "http://www.3-liga.com/images/logos/fortuna-koeln.png",
+    "teamGroupName": null
+   },
+   "lastUpdateDateTime": "2026-08-24T00:23:14.253",
+   "matchIsFinished": true,
+   "matchResults": [
+    {
+     "resultID": 127322,
+     "resultName": "Halbzeit",
+     "pointsTeam1": 0,
+     "pointsTeam2": 0,
+     "resultOrderID": 1,
+     "resultTypeID": 1,
+     "resultTypeKind": "HalfTime",
+     "resultDescription": "Ergebnis nach Ende der ersten Halbzeit"
+    },
+    {
+     "resultID": 127323,
+     "resultName": "Endergebnis",
+     "pointsTeam1": 0,
+     "pointsTeam2": 1,
+     "resultOrderID": 2,
+     "resultTypeID": 2,
+     "resultTypeKind": "After90Minutes",
+     "resultDescription": "Ergebnis nach Ende der offiziellen Spielzeit"
+    }
+   ],
+   "goals": [
+    {
+     "goalID": 145976,
+     "scoreTeam1": 0,
+     "scoreTeam2": 1,
+     "matchMinute": null,
+     "goalGetterID": 0,
+     "goalGetterName": "",
+     "scoringTeamId": 1730,
+     "isPenalty": false,
+     "isOwnGoal": false,
+     "isOvertime": false,
+     "comment": null
+    }
+   ],
+   "location": null,
+   "numberOfViewers": null
+  },
+  {
+   "matchID": 86021,
+   "matchDateTime": "2026-08-30T13:00:00",
+   "timeZoneID": "W. Europe Standard Time",
+   "leagueId": 5994,
+   "leagueName": "Regionalliga West Frauen",
+   "leagueSeason": 2026,
+   "leagueShortcut": "rlw-frauen",
+   "matchDateTimeUTC": "2026-08-30T11:00:00Z",
+   "group": {
+    "groupName": "2. Spieltag",
+    "groupOrderID": 2,
+    "groupID": 53242
+   },
+   "team1": {
+    "teamId": 83,
+    "teamName": "DSC Arminia Bielefeld",
+    "shortName": "Bielefeld",
+    "teamIconUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fd/Arminia_Bielefeld_Logo_2021%E2%80%93.svg",
+    "teamGroupName": null
+   },
+   "team2": {
+    "teamId": 2299,
+    "teamName": "FSV Gütersloh 2009",
+    "shortName": "Gütersloh",
+    "teamIconUrl": "https://derivates.kicker.de/image/fetch/f_webp/w_120%2Ch_120%2Cc_fit%2Cq_auto:best/https://mediadb.kicker.de/2011/fussball/vereine/xxl/5493_2010122125657971.png",
+    "teamGroupName": null
+   },
+   "lastUpdateDateTime": "2026-08-21T16:45:10.573",
+   "matchIsFinished": false,
+   "matchResults": [],
+   "goals": [],
+   "location": {
+    "locationID": 1724,
+    "locationCity": "33659 Bielefeld",
+    "locationStadium": "Rasenplatz, EDIMEDIEN-ARENA, Postheide 34"
+   },
+   "numberOfViewers": null
+  },
+  {
+   "matchID": 86022,
+   "matchDateTime": "2026-08-30T13:00:00",
+   "timeZoneID": "W. Europe Standard Time",
+   "leagueId": 5994,
+   "leagueName": "Regionalliga West Frauen",
+   "leagueSeason": 2026,
+   "leagueShortcut": "rlw-frauen",
+   "matchDateTimeUTC": "2026-08-30T11:00:00Z",
+   "group": {
+    "groupName": "2. Spieltag",
+    "groupOrderID": 2,
+    "groupID": 53242
+   },
+   "team1": {
+    "teamId": 1730,
+    "teamName": "SC Fortuna Köln",
+    "shortName": "Fortuna Köln",
+    "teamIconUrl": "http://www.3-liga.com/images/logos/fortuna-koeln.png",
+    "teamGroupName": null
+   },
+   "team2": {
+    "teamId": 8789,
+    "teamName": "SV Fortuna Freudenberg",
+    "shortName": "SVFF",
+    "teamIconUrl": "https://images.ebcdn.de/club-1911/logo.png?v=2&width=400&format=webp&height=400&mode=max",
+    "teamGroupName": null
+   },
+   "lastUpdateDateTime": "2026-08-21T16:45:28.937",
+   "matchIsFinished": false,
+   "matchResults": [],
+   "goals": [],
+   "location": null,
+   "numberOfViewers": null
+  }
+ ],
+ "getbltable": [
+  {
+   "teamInfoId": 6567,
+   "teamName": "1. FFC Recklinghausen",
+   "shortName": "1. FFC Recklinghausen",
+   "teamIconUrl": "https://derivates.kicker.de/image/fetch/f_webp/w_120%2Ch_120%2Cc_fit%2Cq_auto:best/https://mediadb.kicker.de/2011/fussball/vereine/xxl/20447_2010122125635696.png",
+   "points": 3,
+   "opponentGoals": 2,
+   "goals": 6,
+   "matches": 1,
+   "won": 1,
+   "lost": 0,
+   "draw": 0,
+   "goalDiff": 4
+  },
+  {
+   "teamInfoId": 7,
+   "teamName": "Borussia Dortmund",
+   "shortName": "Dortmund",
+   "teamIconUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Borussia_Dortmund_logo.svg/960px-Borussia_Dortmund_logo.svg.png",
+   "points": 3,
+   "opponentGoals": 0,
+   "goals": 3,
+   "matches": 1,
+   "won": 1,
+   "lost": 0,
+   "draw": 0,
+   "goalDiff": 3
+  },
+  {
+   "teamInfoId": 6564,
+   "teamName": "Bayer 04 Leverkusen II",
+   "shortName": "Bayer 04 Leverkusen II",
+   "teamIconUrl": "https://derivates.kicker.de/image/fetch/f_webp/w_120%2Ch_120%2Cc_fit%2Cq_auto:best/https://mediadb.kicker.de/2019/fussball/vereine/xxl/9_20181114991.png",
+   "points": 3,
+   "opponentGoals": 1,
+   "goals": 3,
+   "matches": 1,
+   "won": 1,
+   "lost": 0,
+   "draw": 0,
+   "goalDiff": 2
+  }
+ ],
+ "getcurrentgroup": {
+  "groupName": "1. Spieltag",
+  "groupOrderID": 1,
+  "groupID": 53241
+ },
+ "getavailableleagues": [
+  {
+   "leagueId": 5994,
+   "leagueName": "Regionalliga West Frauen",
+   "leagueShortcut": "rlw-frauen",
+   "leagueSeason": "2026",
+   "sport": {
+    "sportId": 1,
+    "sportName": "Fußball"
+   }
+  }
+ ]
+}

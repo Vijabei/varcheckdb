@@ -1,0 +1,29 @@
+# Zugangsdaten - niemals ins Repo
+public_html/config.php
+
+# Rohdaten der Quellen: gross, jederzeit neu erzeugbar, fremdes Urheberrecht.
+# Die schlanken Testfixtures unter tests/fixtures/ sind bewusst NICHT ignoriert.
+samples/
+
+# Importdateien, die tools/fetch_kicker.py im Hauptordner ablegt
+/kicker*.json
+/worldfootball*.html
+
+# Ausrangierte Experimente
+bak/
+
+# Rohprotokoll der Vorarbeit. Kein Projektdokument - die Erkenntnisse daraus
+# stehen in docs/datenquellen.md. Zum Aufnehmen diese Zeile entfernen.
+docs/bisheriger_verlauf.md
+
+# Lokale Datenbanken
+*.sqlite
+*.sqlite3
+
+# Windows/WSL
+*:Zone.Identifier
+
+# Python
+venv/
+__pycache__/
+*.pyc
