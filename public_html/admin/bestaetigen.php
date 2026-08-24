@@ -35,7 +35,7 @@ admin_head('Adresse bestätigen', $config);
     <?php else: ?>
       <div class="msg bad">Dieser Verweis gilt nicht mehr &ndash; er ist abgelaufen oder
         schon benutzt worden.</div>
-      <p class="note">Melde dich an; im Adminbereich kannst du dir einen neuen schicken lassen.</p>
+      <p class="note">Melde dich an; dort kannst du dir einen neuen schicken lassen.</p>
       <div class="actions"><a href="index.php"><button type="button">Zur Anmeldung</button></a></div>
     <?php endif; ?>
   </div>

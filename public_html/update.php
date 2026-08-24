@@ -379,7 +379,7 @@ a { color:var(--accent); }
       <input type="hidden" name="action" value="remove">
       <div class="actions">
         <button type="submit" class="ghost">Diese Datei löschen</button>
-        <a href="admin/" class="note">Zum Adminbereich</a>
+        <a href="admin/" class="note">Zur Anmeldung</a>
       </div>
     </form>
   </div>

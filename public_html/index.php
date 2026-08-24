@@ -12,6 +12,7 @@ require_once __DIR__ . '/lib/app.php';
 require_once __DIR__ . '/lib/json.php';
 require_once __DIR__ . '/lib/repo.php';
 require_once __DIR__ . '/lib/api/OpenLigaDbApi.php';
+require_once __DIR__ . '/admin/auth.php';
 
 $config = App::boot();
 
@@ -42,6 +43,14 @@ function kickoff(?string $utc, string $timezone): array
 }
 
 $timezone = (string)($config['timezone'] ?? 'Europe/Berlin');
+
+/**
+ * Ist jemand angemeldet?
+ *
+ * Geprueft wird nur, wenn ueberhaupt ein Sitzungskeks mitkommt. Sonst
+ * bekaeme jeder Besucher der oeffentlichen Seite einen - und die liest nur.
+ */
+$angemeldet = isset($_COOKIE[session_name()]) && Auth::isLoggedIn();
 
 // ------------------------------------------------------------------- Routen
 
@@ -226,14 +235,39 @@ th { color:var(--muted); font-size:.78rem; text-transform:uppercase; letter-spac
 code { background:#eef0f2; padding:.1rem .35rem; border-radius:.2rem; font-size:.88em; }
 a { color:var(--accent); }
 .foot { margin-top:2rem; color:var(--muted); font-size:.85rem; }
+.kopf { display:flex; gap:1.5rem; align-items:flex-start; flex-wrap:wrap;
+        justify-content:space-between; margin-bottom:2rem; }
+.kopf h1 { margin-bottom:.25rem; }
+.kopf .lead { margin:0; }
+.zugang { display:flex; gap:.6rem; align-items:center; flex-wrap:wrap; }
+.zugang .wer { color:var(--muted); font-size:.9rem; }
+.knopf { display:inline-block; background:var(--accent); color:#fff; text-decoration:none;
+         border-radius:.35rem; padding:.5rem 1.1rem; font-size:.92rem; font-weight:600;
+         white-space:nowrap; }
+.knopf:hover { filter:brightness(1.15); }
+.knopf.ghost { background:#e7e9ec; color:var(--ink); }
+.aktionen { margin-top:1.25rem; display:flex; gap:.75rem; flex-wrap:wrap; }
 .empty { color:var(--muted); }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<h1><?= h($config['site_name'] ?? 'Spieldaten') ?></h1>
-<p class="lead">Spielpläne und Ergebnisse als JSON</p>
+<div class="kopf">
+  <div>
+    <h1><?= h($config['site_name'] ?? 'Spieldaten') ?></h1>
+    <p class="lead">Spielpläne und Ergebnisse als JSON</p>
+  </div>
+  <nav class="zugang">
+    <?php if ($angemeldet): ?>
+      <span class="wer"><?= h(Auth::username()) ?></span>
+      <a href="admin/" class="knopf">Meine Ligen</a>
+    <?php else: ?>
+      <a href="admin/" class="knopf ghost">Anmelden</a>
+      <a href="admin/register.php" class="knopf">Mitmachen</a>
+    <?php endif; ?>
+  </nav>
+</div>
 
 <div class="card">
   <div class="stats">
@@ -247,7 +281,7 @@ a { color:var(--accent); }
 <h2>Wettbewerbe</h2>
 <?php if ($competitions === []): ?>
   <div class="card empty">
-    Noch keine Daten. Im <a href="admin/">Adminbereich</a> die erste Importdatei hochladen.
+    Noch keine Daten. <a href="admin/">Anmelden</a> und die erste Liga anlegen.
   </div>
 <?php else: ?>
   <div class="card">
@@ -298,9 +332,25 @@ a { color:var(--accent); }
      keine unserer Quellen.</small></p>
 </div>
 
+<?php if (!$angemeldet): ?>
+  <h2>Mitmachen</h2>
+  <div class="card">
+    <p>Diese Datenbank lebt davon, dass jemand sie pflegt. Mit einem Konto kannst du
+       <strong>eigene Ligen anlegen</strong> und betreuen: Spielpläne einspielen,
+       Ergebnisse nachtragen, Termine korrigieren.</p>
+    <p class="note">Wer eine Liga anlegt, betreut sie und entscheidet, wer daran
+       mitarbeitet. An fremden Ligen kannst du nichts ändern &ndash; dafür fragst du
+       deren Besitzer. Gebraucht werden ein Benutzername, eine Mailadresse für das
+       Zurücksetzen des Passworts, und ein Passwort. Sonst nichts.</p>
+    <div class="aktionen">
+      <a href="admin/register.php" class="knopf">Konto anlegen</a>
+      <a href="admin/" class="knopf ghost">Ich habe schon eins</a>
+    </div>
+  </div>
+<?php endif; ?>
+
 <p class="foot">
-  <a href="admin/">Adminbereich</a>
-  <?php if ($config['attribution'] ?? null): ?> &middot; <?= h($config['attribution']) ?><?php endif; ?>
+  <?php if ($config['attribution'] ?? null): ?><?= h($config['attribution']) ?><?php endif; ?>
 </p>
 
 </div>

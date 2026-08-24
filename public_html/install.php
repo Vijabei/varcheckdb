@@ -441,7 +441,7 @@ code { background: #eef0f2; padding: .1rem .3rem; border-radius: .2rem; font-siz
      und leere die Datenbank. Andernfalls loesche <code>install.php</code> &mdash;
      die Datei sollte auf einem laufenden System nicht erreichbar sein.</p>
   <div class="actions">
-    <a href="admin/"><button type="button">Zum Adminbereich</button></a>
+    <a href="admin/"><button type="button">Zur Anmeldung</button></a>
   </div>
 
 <?php elseif ($step === 1): ?>
@@ -615,7 +615,7 @@ code { background: #eef0f2; padding: .1rem .3rem; border-radius: .2rem; font-siz
            value="<?= e(stored('admin_username', 'admin')) ?>" autocomplete="username" required>
     <p class="note">Dieser Zugang bekommt die Rolle Verwaltung und darf Benutzer,
        Wettbewerbe und Importe verwalten. Weitere Zugänge legst du später im
-       Adminbereich an.</p>
+       Bereich „Benutzer" an.</p>
 
     <label for="admin_email">Mailadresse</label>
     <input type="text" id="admin_email" name="admin_email"
@@ -650,13 +650,13 @@ code { background: #eef0f2; padding: .1rem .3rem; border-radius: .2rem; font-siz
     <input type="hidden" name="step" value="5">
     <input type="hidden" name="action" value="remove">
     <div class="actions">
-      <button type="submit">Installer loeschen und zum Adminbereich</button>
+      <button type="submit">Installer löschen und anmelden</button>
       <a href="admin/" class="note">Ohne Loeschen weiter</a>
     </div>
   </form>
 
   <h2>Wie es weitergeht</h2>
-  <p>Im Adminbereich laedst du die erste Importdatei hoch &ndash; JSON oder CSV.
+  <p>Nach der Anmeldung laedst du die erste Importdatei hoch &ndash; JSON oder CSV.
      Beim ersten Import ordnest du die Mannschaftsnamen einmalig zu; danach greift
      die Zuordnung automatisch.</p>
   <p>Aufbau der Formate: <code>docs/import.md</code>.</p>

@@ -153,7 +153,7 @@ final class Auth
         if (!self::can($capability)) {
             http_response_code(403);
             require __DIR__ . '/layout.php';
-            admin_head('Nicht erlaubt', ['site_name' => 'Adminbereich']);
+            admin_head('Nicht erlaubt', ['site_name' => 'Meine Ligen']);
             echo '<main style="max-width:32rem;margin:4rem auto;padding:0 1rem">'
                 . '<h1>Nicht erlaubt</h1><div class="card"><p>Dafür fehlt deiner Rolle '
                 . '<strong>' . htmlspecialchars(Users::ROLES[self::role()] ?? '—', ENT_QUOTES) . '</strong> '
