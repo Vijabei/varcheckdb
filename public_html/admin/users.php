@@ -250,26 +250,20 @@ foreach ($benutzer as $u) {
 <div class="card">
   <h2 style="margin-top:0">Was die Rollen dürfen</h2>
   <table>
-    <thead><tr><th></th><th>Verwaltung</th><th>Pflege</th></tr></thead>
+    <thead><tr><th></th><th>Webadmin</th><th>Mitmachen</th></tr></thead>
     <tbody>
-      <?php foreach ([
-          'matches.edit'        => 'Spiele ändern, einzeln und en bloc',
-          'import.csv'          => 'CSV herunterladen und zurückspielen',
-          'import.full'         => 'Dateien importieren (JSON, HTML)',
-          'competitions.manage' => 'Wettbewerbe anlegen und entfernen',
-          'users.manage'        => 'Benutzer verwalten',
-      ] as $recht => $text): ?>
-        <tr>
-          <td><?= e($text) ?></td>
-          <td><?= Users::can(Users::ROLE_ADMIN, $recht) ? '&#10003;' : '&ndash;' ?></td>
-          <td><?= Users::can(Users::ROLE_EDITOR, $recht) ? '&#10003;' : '&ndash;' ?></td>
-        </tr>
-      <?php endforeach; ?>
+      <tr><td>Lesen und exportieren</td><td>&#10003;</td><td>&#10003;</td></tr>
+      <tr><td>Eigene Ligen anlegen</td><td>&#10003;</td><td>&#10003;</td></tr>
+      <tr><td>Eigene Ligen pflegen und importieren</td><td>&#10003;</td><td>&#10003;</td></tr>
+      <tr><td>Co-Admins für eigene Ligen benennen</td><td>&#10003;</td><td>&#10003;</td></tr>
+      <tr><td>An <em>fremden</em> Ligen arbeiten</td><td>&#10003;</td><td>&ndash;</td></tr>
+      <tr><td>Benutzer verwalten</td><td>&#10003;</td><td>&ndash;</td></tr>
+      <tr><td>Mannschaften aufräumen</td><td>&#10003;</td><td>&ndash;</td></tr>
     </tbody>
   </table>
-  <p class="note">Der CSV-Rücklauf gehört zur Pflege: er ist der Weg, auf dem viele
-     Änderungen auf einmal gemacht werden. Wer Spiele ändern darf, aber seine eigene
-     Tabelle nicht wieder hochladen kann, kann die Arbeit nicht tun.</p>
+  <p class="note">Wer eine Liga anlegt, wird ihr Besitzer und entscheidet, wer daran
+     mitarbeitet. Deshalb ist die offene Anmeldung unbedenklich: ein neues Konto kann
+     an bestehenden Ligen nichts ändern.</p>
 </div>
 
 <?php

@@ -3,27 +3,25 @@ declare(strict_types=1);
 
 /** Benutzerkonten, Rollen und was sie duerfen. */
 
-T::group('Users - Rollen und Berechtigungen');
+T::group('Users - globale Rollen');
 
-T::ok(Users::can('admin', 'users.manage'), 'die Verwaltung darf Benutzer pflegen');
-T::ok(Users::can('admin', 'competitions.manage'), 'und Wettbewerbe');
-T::ok(Users::can('admin', 'import.full'), 'und vollstaendig importieren');
-T::ok(Users::can('admin', 'matches.edit'), 'und Spiele aendern');
+// Was global gilt, ist wenig: alles Weitere haengt an der Mitgliedschaft
+// am Wettbewerb und steht in Access.
+T::ok(Users::can(Users::ROLE_ADMIN, 'users.manage'), 'nur der Webadmin verwaltet Benutzer');
+T::ok(Users::can(Users::ROLE_ADMIN, 'system.manage'), 'und greift ueberall durch');
+T::ok(Users::can(Users::ROLE_ADMIN, 'competitions.create'), 'Ligen anlegen darf er auch');
 
-T::ok(Users::can('editor', 'matches.edit'), 'die Pflege darf Spiele aendern');
-T::ok(Users::can('editor', 'import.csv'),
-    'und ihre CSV wieder hochladen - sonst koennte sie en bloc gar nicht arbeiten');
-T::ok(!Users::can('editor', 'import.full'), 'aber keine fremden Dateien importieren');
-T::ok(!Users::can('editor', 'competitions.manage'), 'keine Wettbewerbe verwalten');
-T::ok(!Users::can('editor', 'users.manage'), 'und keine Benutzer');
+T::ok(Users::can(Users::ROLE_USER, 'competitions.create'), 'jeder Mitmacher darf Ligen anlegen');
+T::ok(!Users::can(Users::ROLE_USER, 'users.manage'), 'aber keine Benutzer verwalten');
+T::ok(!Users::can(Users::ROLE_USER, 'system.manage'), 'und nicht ueberall durchgreifen');
 
-T::ok(!Users::can(null, 'matches.edit'), 'ohne Rolle ist nichts erlaubt');
-T::ok(!Users::can('gibtesnicht', 'matches.edit'), 'eine unbekannte Rolle darf nichts');
+T::ok(!Users::can(null, 'competitions.create'), 'ohne Rolle ist nichts erlaubt');
+T::ok(!Users::can('gibtesnicht', 'competitions.create'), 'eine unbekannte Rolle darf nichts');
 
 T::group('Users - Benutzernamen pruefen');
 
 fresh_db();
-$basis = ['password' => 'einLangesPasswort', 'role' => 'editor'];
+$basis = ['password' => 'einLangesPasswort', 'role' => Users::ROLE_USER];
 
 foreach (['anna', 'max.mustermann', 'staffel-west', 'user_1', 'a1'] as $name) {
     T::same([], Users::validate($basis + ['username' => $name]), sprintf('"%s" wird angenommen', $name));
@@ -41,10 +39,10 @@ foreach ([
         sprintf('"%s" wird abgelehnt (%s)', mb_substr($name, 0, 12), $warum));
 }
 
-T::ok(Users::validate(['username' => 'anna', 'password' => 'kurz', 'role' => 'editor']) !== [],
+T::ok(Users::validate(['username' => 'anna', 'password' => 'kurz', 'role' => Users::ROLE_USER]) !== [],
     'ein zu kurzes Passwort wird abgelehnt');
 T::ok(Users::validate(['username' => 'anna', 'password' => 'einLangesPasswort',
-    'password_repeat' => 'etwasAnderes', 'role' => 'editor']) !== [],
+    'password_repeat' => 'etwasAnderes', 'role' => Users::ROLE_USER]) !== [],
     'zwei verschiedene Passwoerter werden abgelehnt');
 T::ok(Users::validate(['username' => 'anna', 'password' => 'einLangesPasswort', 'role' => 'chef']) !== [],
     'eine unbekannte Rolle wird abgelehnt');
@@ -73,14 +71,14 @@ T::same(null, Users::authenticate('gibtesnicht', 'einLangesPasswort'), 'ein unbe
 T::ok(Users::authenticate('ANNA', 'einLangesPasswort') !== null,
     'die Schreibweise des Namens ist gleichgueltig');
 
-T::ok(Users::validate(['username' => 'Anna', 'password' => 'einLangesPasswort', 'role' => 'editor']) !== [],
+T::ok(Users::validate(['username' => 'Anna', 'password' => 'einLangesPasswort', 'role' => Users::ROLE_USER]) !== [],
     'derselbe Name in anderer Schreibweise wird abgelehnt');
 
 T::group('Users - abgeschaltete Konten');
 
 $bertaId = Users::create([
     'username' => 'berta', 'password' => 'einLangesPasswort',
-    'role' => Users::ROLE_EDITOR, 'active' => 1,
+    'role' => Users::ROLE_USER, 'active' => 1,
 ]);
 T::ok(Users::authenticate('berta', 'einLangesPasswort') !== null, 'berta kann sich anmelden');
 
@@ -151,11 +149,11 @@ T::same(1, (int)$nachher['active'], 'das Konto bleibt eingeschaltet');
 T::same(Users::ROLE_ADMIN, $nachher['role'], 'die Rolle bleibt');
 T::ok(Users::authenticate('dora', 'einAnderesLangesPasswort') !== null, 'die Anmeldung gelingt weiter');
 
-Users::update($id, ['role' => Users::ROLE_EDITOR], 'dora');
+Users::update($id, ['role' => Users::ROLE_USER], 'dora');
 T::same(1, (int)Users::find($id)['active'], 'auch eine Rollenaenderung schaltet nichts ab');
 
 Users::update($id, ['active' => 0], 'dora');
-T::same(Users::ROLE_EDITOR, Users::find($id)['role'], 'und das Abschalten aendert die Rolle nicht');
+T::same(Users::ROLE_USER, Users::find($id)['role'], 'und das Abschalten aendert die Rolle nicht');
 
 T::group('Users - das Protokoll nennt den Handelnden');
 
@@ -169,7 +167,7 @@ $annaId = Users::create([
 
 Users::create([
     'username' => 'berta', 'password' => 'einLangesPasswort',
-    'role' => Users::ROLE_EDITOR, 'active' => 1,
+    'role' => Users::ROLE_USER, 'active' => 1,
 ], 'anna');
 
 T::same('installer', (string)Db::value(

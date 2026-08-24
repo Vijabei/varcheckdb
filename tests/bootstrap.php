@@ -13,6 +13,7 @@ require_once ROOT . '/public_html/lib/repo.php';
 require_once ROOT . '/public_html/lib/editor.php';
 require_once ROOT . '/public_html/lib/competitions.php';
 require_once ROOT . '/public_html/lib/users.php';
+require_once ROOT . '/public_html/lib/access.php';
 require_once ROOT . '/public_html/lib/api/OpenLigaDbApi.php';
 require_once ROOT . '/public_html/lib/normalize.php';
 require_once ROOT . '/public_html/lib/encoding.php';

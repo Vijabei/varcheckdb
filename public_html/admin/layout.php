@@ -60,17 +60,15 @@ function admin_nav(string $current, array $config): void
 {
     // Nur zeigen, was die Rolle auch darf - ein Verweis, der zu
     // "nicht erlaubt" fuehrt, ist eine Zumutung.
-    $items = ['index.php' => 'Übersicht'];
+    // Spielplan, Import und Wettbewerbe stehen jedem Angemeldeten offen -
+    // was er dort darf, entscheidet sich je Liga.
+    $items = [
+        'index.php'        => 'Übersicht',
+        'matches.php'      => 'Spielplan',
+        'import.php'       => 'Import',
+        'competitions.php' => 'Wettbewerbe',
+    ];
 
-    if (Auth::can('matches.edit')) {
-        $items['matches.php'] = 'Spielplan';
-    }
-    if (Auth::can('import.csv')) {
-        $items['import.php'] = 'Import';
-    }
-    if (Auth::can('competitions.manage')) {
-        $items['competitions.php'] = 'Wettbewerbe';
-    }
     if (Auth::can('users.manage')) {
         $items['users.php'] = 'Benutzer';
     }

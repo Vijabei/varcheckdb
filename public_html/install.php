@@ -266,7 +266,7 @@ if ($step === 4 && $_SERVER['REQUEST_METHOD'] === 'POST' && $errors === []) {
                         'role'     => Users::ROLE_ADMIN,
                         'active'   => 1,
                     ], 'installer');
-                    $notices[] = sprintf('Benutzer "%s" mit der Rolle Verwaltung angelegt.', $adminUser);
+                    $notices[] = sprintf('Webadmin "%s" angelegt.', $adminUser);
 
                     $written = Installer::writeConfig(CONFIG_FILE, [
                         'created_at'          => date('d.m.Y H:i'),

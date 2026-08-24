@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../lib/app.php';
 require_once __DIR__ . '/../lib/repo.php';
+require_once __DIR__ . '/../lib/access.php';
 require_once __DIR__ . '/../lib/import/Adapter.php';
 require_once __DIR__ . '/../lib/import/AdapterFactory.php';
 require_once __DIR__ . '/../lib/import/KickerJsonAdapter.php';
@@ -24,7 +25,7 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/layout.php';
 
 $config = App::boot();
-Auth::requireCapability('import.csv');
+Auth::require();
 
 $timezone = (string)($config['timezone'] ?? 'Europe/Berlin');
 $errors = [];
@@ -64,6 +65,9 @@ if (($_POST['action'] ?? '') === 'upload' && Auth::tokenValid()) {
 
     if ($competitionSeasonId <= 0) {
         $errors[] = 'Bitte einen Wettbewerb auswaehlen.';
+    } elseif (!Access::mayEditSeason(Auth::userId(), Auth::role(), $competitionSeasonId)) {
+        $errors[] = 'In diese Liga darfst du nicht importieren. Frag ihren Besitzer, '
+            . 'ob er dich als Co-Admin dazunimmt.';
     } elseif ($file === null || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
         $errors[] = match ($file['error'] ?? UPLOAD_ERR_NO_FILE) {
             UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE =>
@@ -78,14 +82,6 @@ if (($_POST['action'] ?? '') === 'upload' && Auth::tokenValid()) {
 
         if ($detected['adapter'] === null) {
             $errors[] = $detected['reason'];
-        } elseif (!$detected['adapter'] instanceof CsvAdapter && !Auth::can('import.full')) {
-            // Die Pflege darf ihre eigene Tabelle zurueckspielen, aber keine
-            // fremden Dateien einspielen.
-            $errors[] = sprintf(
-                'Deine Rolle darf nur CSV-Dateien hochladen. Erkannt wurde: %s. '
-                . 'Vollständige Importe macht die Verwaltung.',
-                $detected['name']
-            );
         } else {
             try {
                 $parsed = $detected['adapter']->parse($content);
@@ -275,8 +271,16 @@ admin_nav('import.php', $config);
   <div class="card">
     <h2 style="margin-top:0">Datei hochladen</h2>
 
-    <?php if ($competitions === []): ?>
-      <p class="empty">Es ist kein Wettbewerb angelegt.</p>
+    <?php
+    $eigeneVorhanden = array_filter(
+        $competitions,
+        static fn(array $r): bool => Access::mayEditSeason(Auth::userId(), Auth::role(), (int)$r['id'])
+    );
+    ?>
+    <?php if ($eigeneVorhanden === []): ?>
+      <p class="empty">Du betreust noch keine Liga.
+         <a href="competitions.php">Leg eine an</a> &ndash; oder frag den Besitzer einer
+         bestehenden, ob er dich dazunimmt.</p>
     <?php else: ?>
       <form method="post" enctype="multipart/form-data">
         <input type="hidden" name="token" value="<?= e(Auth::token()) ?>">
@@ -284,7 +288,13 @@ admin_nav('import.php', $config);
 
         <label for="competition">Wettbewerb</label>
         <select id="competition" name="competition">
-          <?php foreach ($competitions as $row): ?>
+          <?php
+          $eigene = array_filter(
+              $competitions,
+              static fn(array $r): bool => Access::mayEditSeason(Auth::userId(), Auth::role(), (int)$r['id'])
+          );
+          ?>
+          <?php foreach ($eigene as $row): ?>
             <option value="<?= (int)$row['id'] ?>">
               <?= e($row['competition_name']) ?> &ndash; <?= e($row['season_name']) ?>
             </option>
@@ -294,15 +304,9 @@ admin_nav('import.php', $config);
         <label for="datei">Datei</label>
         <input type="file" id="datei" name="datei" accept=".json,.html,.htm,.txt,.csv" required>
         <p class="note">
-          <?php if (Auth::can('import.full')): ?>
-            Erkannt werden JSON im Format <code>varcheckdb-import/1</code>, CSV und
-            gespeicherte HTML-Spielpläne. Das Format wird am Inhalt erkannt, nicht an
-            der Dateiendung.
-          <?php else: ?>
-            Deine Rolle darf CSV-Dateien hochladen &ndash; also den Rücklauf aus dem
-            <a href="matches.php">Spielplan</a>. Vollständige Importe macht die Verwaltung.
-          <?php endif; ?>
-          Höchstens <?= e((string)ini_get('upload_max_filesize')) ?>.
+          Erkannt werden JSON im Format <code>varcheckdb-import/1</code>, CSV und
+          gespeicherte HTML-Spielpläne. Das Format wird am Inhalt erkannt, nicht an
+          der Dateiendung. Höchstens <?= e((string)ini_get('upload_max_filesize')) ?>.
         </p>
 
         <div class="actions"><button type="submit">Einlesen</button></div>

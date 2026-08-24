@@ -5,10 +5,14 @@ warum es fehlt.
 
 ## Offen
 
-**Rechte je Wettbewerb.** Zurzeit gilt eine Rolle für alles. Soll jemand nur
-*seinen* Wettbewerb pflegen dürfen, wird aus zwei Rollen ein Rechtesystem —
-mit Zuordnungstabelle, Prüfung an jeder Stelle und einer Oberfläche dafür. Das
-lohnt erst, wenn mehrere Staffelleitungen nebeneinander arbeiten.
+**Ligen zusammenführen.** Legt jemand eine Liga an, die es schon gibt, stehen
+zwei nebeneinander. Der Webadmin kann eine entfernen, aber nicht die Daten
+zusammenschieben. Bisher kein Problem — wird eines, sobald mehrere Leute
+unabhängig anfangen.
+
+**Ligen übergeben.** Wer aufhört, sollte seine Liga weitergeben können. Geht
+heute schon: jemand anderen zum Besitzer machen, dann selbst austreten. Ein
+eigener Weg dafür wäre bequemer, ist aber nicht nötig.
 
 ## Was ein Importlauf leistet
 
@@ -37,15 +41,13 @@ hat.
 
 ## Erledigt seit den letzten Notizen
 
-**Benutzerkonten mit zwei Rollen.** Verwaltung und Pflege, angelegt im
-Adminbereich, keine Selbstregistrierung. Der Installer legt den ersten Zugang
-an. Jede Änderung trägt den Benutzernamen statt „admin" oder „import" —
-auch ein Import, denn wer die Vorschau abgenommen hat, verantwortet sie.
+**Benutzerkonten und Besitz je Liga.** Jeder kann sich anmelden; wer eine Liga
+anlegt, betreut sie und benennt Co-Admins. An fremden Ligen kann ein neues
+Konto nichts ändern — deshalb braucht die offene Anmeldung keine Freischaltung.
 
-Der letzte aktive Verwalter lässt sich weder entfernen noch abschalten noch
-herabstufen. Ein abgeschaltetes Konto verliert seine laufende Sitzung beim
-nächsten Seitenaufruf, statt bis zum Abmelden weiterarbeiten zu können.
-Einzelheiten in [benutzer.md](benutzer.md).
+Jede Änderung trägt den Benutzernamen statt „admin" oder „import" — auch ein
+Import, denn wer die Vorschau abgenommen hat, verantwortet sie. Einzelheiten
+in [benutzer.md](benutzer.md).
 
 **Mannschaftsnamen sind eindeutig.** Ein Name, ein Eintrag — über alle
 Wettbewerbe hinweg. Vorher war ein Name nur zusammen mit Geschlecht und

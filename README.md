@@ -49,8 +49,9 @@ nichts, bleibt der bestehende Wert stehen, statt gelöscht zu werden.
 **Ein Spiel gehört zu seinem Spieltag, unabhängig vom Termin.** Ein vom
 Ostersamstag in den Mai verlegtes Spiel behält seinen Spieltag.
 
-Mehrere Personen können pflegen: es gibt Benutzerkonten mit zwei Rollen, und
-jede Änderung trägt den Namen dessen, der sie gemacht hat. Siehe
+Mehrere Personen können pflegen. Wer eine Liga anlegt, betreut sie und
+entscheidet, wer daran mitarbeitet; an fremden Ligen kann niemand etwas ändern.
+Deshalb kann sich jeder anmelden, ohne dass das ein Risiko wäre. Siehe
 [docs/benutzer.md](docs/benutzer.md). Was noch offen ist, steht in
 [docs/naechste-schritte.md](docs/naechste-schritte.md).
 

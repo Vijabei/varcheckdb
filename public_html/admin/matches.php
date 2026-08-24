@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../lib/app.php';
 require_once __DIR__ . '/../lib/repo.php';
 require_once __DIR__ . '/../lib/editor.php';
+require_once __DIR__ . '/../lib/access.php';
 require_once __DIR__ . '/../lib/import/Adapter.php';
 require_once __DIR__ . '/../lib/import/CsvAdapter.php';
 require_once __DIR__ . '/../lib/import/FieldSource.php';
@@ -13,7 +14,7 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/layout.php';
 
 $config = App::boot();
-Auth::requireCapability('matches.edit');
+Auth::require();
 
 $timezone = (string)($config['timezone'] ?? 'Europe/Berlin');
 $errors = [];
@@ -26,6 +27,11 @@ function e(?string $v): string
 
 $competitions = Repo::competitions();
 $competitionId = (int)($_GET['competition'] ?? $_POST['competition'] ?? ($competitions[0]['id'] ?? 0));
+
+// Lesen und Exportieren darf jeder Angemeldete; geaendert wird nur, wo man
+// Mitglied ist. Der Export ist ohnehin oeffentlich ueber die Schnittstelle.
+$darfAendern = $competitionId > 0
+    && Access::mayEditSeason(Auth::userId(), Auth::role(), $competitionId);
 
 $filter = [];
 foreach (['round', 'status'] as $key) {
@@ -58,7 +64,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::tokenValid()) {
     $selected = array_map('intval', (array)($_POST['auswahl'] ?? []));
     $action = (string)($_POST['action'] ?? '');
 
-    if ($selected === [] && $action !== 'einzeln') {
+    if (!$darfAendern) {
+        $errors[] = 'An dieser Liga darfst du nichts ändern. Frag ihren Besitzer, '
+            . 'ob er dich als Co-Admin dazunimmt.';
+        $action = '';
+    } elseif ($selected === [] && $action !== 'einzeln') {
         $errors[] = 'Es ist kein Spiel ausgewaehlt.';
     } else {
         switch ($action) {
@@ -228,7 +238,7 @@ admin_nav('matches.php', $config);
   </p>
 </div>
 
-<?php if ($editRow !== null): ?>
+<?php if ($editRow !== null && $darfAendern): ?>
   <?php $geschuetzt = protectedFields((int)$editRow['id']); ?>
   <div class="card">
     <h2 style="margin-top:0"><?= e($editRow['home_name']) ?> &ndash; <?= e($editRow['away_name']) ?></h2>
@@ -302,6 +312,14 @@ admin_nav('matches.php', $config);
   <div class="card empty">Keine Spiele. Unter <a href="import.php">Import</a> eine Datei hochladen.</div>
 <?php else: ?>
 
+<?php if (!$darfAendern): ?>
+  <div class="msg bad">
+    Diese Liga wird von jemand anderem betreut. Du kannst sie ansehen und
+    herunterladen, aber nichts ändern. Wer mitarbeiten möchte, fragt den Besitzer
+    &ndash; er steht unter <a href="competitions.php">Wettbewerbe</a>.
+  </div>
+<?php endif; ?>
+
 <form method="post">
   <input type="hidden" name="token" value="<?= e(Auth::token()) ?>">
   <input type="hidden" name="competition" value="<?= $competitionId ?>">
@@ -309,6 +327,7 @@ admin_nav('matches.php', $config);
     <input type="hidden" name="<?= e($key) ?>" value="<?= e((string)$value) ?>">
   <?php endforeach; ?>
 
+  <?php if ($darfAendern): ?>
   <div class="card">
     <h2 style="margin-top:0">Auswahl ändern</h2>
     <p class="note">Wirkt auf alle angehakten Spiele. Jede Änderung gilt als von dir
@@ -333,12 +352,13 @@ admin_nav('matches.php', $config);
       <div><button type="submit" name="action" value="vorlaeufig" class="ghost">Als vorläufig</button></div>
     </div>
   </div>
+  <?php endif; ?>
 
   <div class="card">
     <table>
       <thead>
         <tr>
-          <th><input type="checkbox" id="alle"></th>
+          <th><?php if ($darfAendern): ?><input type="checkbox" id="alle"><?php endif; ?></th>
           <th>ST</th><th>Anstoß</th><th>Heim</th><th>Gast</th>
           <th>Ergebnis</th><th>Status</th><th></th>
         </tr>
@@ -347,7 +367,7 @@ admin_nav('matches.php', $config);
       <?php foreach ($matches as $row): ?>
         <?php $geschuetzt = protectedFields((int)$row['id']); ?>
         <tr>
-          <td><input type="checkbox" name="auswahl[]" value="<?= (int)$row['id'] ?>"></td>
+          <td><?php if ($darfAendern): ?><input type="checkbox" name="auswahl[]" value="<?= (int)$row['id'] ?>"><?php endif; ?></td>
           <td><?= (int)$row['round_number'] ?></td>
           <td>
             <?= e(ortszeit($row['kickoff_utc'], $timezone)) ?>
@@ -371,7 +391,11 @@ admin_nav('matches.php', $config);
             <?php endif; ?>
           </td>
           <td><?= e($row['status']) ?></td>
-          <td><a href="?competition=<?= $competitionId ?>&edit=<?= (int)$row['id'] ?>">ändern</a></td>
+          <td>
+            <?php if ($darfAendern): ?>
+              <a href="?competition=<?= $competitionId ?>&edit=<?= (int)$row['id'] ?>">ändern</a>
+            <?php endif; ?>
+          </td>
         </tr>
       <?php endforeach; ?>
       </tbody>
@@ -381,7 +405,7 @@ admin_nav('matches.php', $config);
 </form>
 
 <script>
-document.getElementById('alle').addEventListener('change', function () {
+document.getElementById('alle')?.addEventListener('change', function () {
   document.querySelectorAll('input[name="auswahl[]"]').forEach(function (box) {
     box.checked = this.checked;
   }, this);

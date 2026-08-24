@@ -94,12 +94,34 @@ CREATE TABLE users (
   username TEXT NOT NULL,
   username_normalized TEXT NOT NULL,
   password_hash TEXT NOT NULL,
-  role TEXT NOT NULL DEFAULT 'editor',
+  role TEXT NOT NULL DEFAULT 'user',
   active INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_login_at TEXT NULL,
   UNIQUE (username_normalized)
 );
+
+CREATE TABLE competition_members (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  competition_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  role TEXT NOT NULL DEFAULT 'coadmin',
+  granted_by INTEGER NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (competition_id, user_id),
+  CONSTRAINT fk_member_competition FOREIGN KEY (competition_id) REFERENCES competitions (id) ON DELETE CASCADE,
+  CONSTRAINT fk_member_user        FOREIGN KEY (user_id)        REFERENCES users (id) ON DELETE CASCADE
+);
+
+CREATE INDEX ix_member_user ON competition_members (user_id);
+
+CREATE TABLE signup_attempts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ip_hash CHAR(64) NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX ix_signup ON signup_attempts (ip_hash, created_at);
 
 CREATE TABLE sources (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

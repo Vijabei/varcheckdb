@@ -109,25 +109,62 @@ CREATE TABLE rounds (
 
 -- ---------------------------------------------------------------- Benutzer
 
--- Zwei Rollen genuegen:
+-- Zwei globale Rollen:
 --
---   admin   Verwaltung - Benutzer, Wettbewerbe, alle Importe
---   editor  Pflege     - Spiele aendern, CSV herunterladen und zurueckspielen
+--   admin  Webadmin  - darf alles, ueberall
+--   user   Mitmachen - darf Ligen anlegen und lesen; was er darin darf,
+--                      entscheidet die Mitgliedschaft am Wettbewerb
 --
--- Bewusst kein Rechtesystem je Wettbewerb. Sobald jemand nur *seinen*
--- Wettbewerb pflegen duerfen soll, wird aus zwei Rollen ein Rechtesystem,
--- und der Aufwand steigt deutlich. Bis das gebraucht wird, bleibt es dabei.
+-- Jeder kann sich anmelden. Das ist unbedenklich, weil ein neues Konto
+-- niemandem etwas anhaben kann: Schreibrechte gelten nur fuer eigene Ligen.
 CREATE TABLE users (
   id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   username            VARCHAR(64)  NOT NULL,
   username_normalized VARCHAR(64)  NOT NULL,
   password_hash       VARCHAR(255) NOT NULL,
-  role                VARCHAR(16)  NOT NULL DEFAULT 'editor',
+  role                VARCHAR(16)  NOT NULL DEFAULT 'user',
   active              TINYINT(1)   NOT NULL DEFAULT 1,
   created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_login_at       DATETIME         NULL,
   PRIMARY KEY (id),
   UNIQUE KEY uq_users_username (username_normalized)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Wer darf an einem Wettbewerb arbeiten.
+--
+-- Die Mitgliedschaft haengt am Wettbewerb, nicht an der einzelnen Saison: wer
+-- eine Liga betreut, betreut sie ueber die Jahre.
+--
+--   owner    hat die Liga angelegt; darf alles, auch Rechte vergeben und
+--            die Liga entfernen
+--   coadmin  darf pflegen und importieren, aber keine Rechte vergeben und
+--            die Liga nicht entfernen
+--
+-- Der Webadmin steht ueber allem und braucht keinen Eintrag.
+CREATE TABLE competition_members (
+  id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  competition_id BIGINT UNSIGNED NOT NULL,
+  user_id        BIGINT UNSIGNED NOT NULL,
+  role           VARCHAR(16)  NOT NULL DEFAULT 'coadmin',
+  granted_by     BIGINT UNSIGNED  NULL,
+  created_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_member (competition_id, user_id),
+  KEY ix_member_user (user_id),
+  CONSTRAINT fk_member_competition FOREIGN KEY (competition_id) REFERENCES competitions (id) ON DELETE CASCADE,
+  CONSTRAINT fk_member_user        FOREIGN KEY (user_id)        REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Anmeldeversuche, um automatisierte Massenanmeldungen zu bremsen.
+--
+-- Gespeichert wird nur ein Hash der Adresse, nicht die Adresse selbst: fuer
+-- die Zaehlung genuegt er, und eine IP ist ein personenbezogenes Datum.
+CREATE TABLE signup_attempts (
+  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  ip_hash    CHAR(64)     NOT NULL,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY ix_signup (ip_hash, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------------ Quellen
@@ -190,7 +227,7 @@ CREATE TABLE match_field_sources (
   CONSTRAINT fk_mfs_source FOREIGN KEY (source_id) REFERENCES sources (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ------------------------------------------------------------------ Quellen
+-- ------------------------------------------------------------ Datenquellen
 
 
 CREATE TABLE source_mappings (

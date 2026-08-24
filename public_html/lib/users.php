@@ -16,23 +16,23 @@ declare(strict_types=1);
  */
 final class Users
 {
-    public const ROLE_ADMIN  = 'admin';
-    public const ROLE_EDITOR = 'editor';
+    public const ROLE_ADMIN = 'admin';
+    public const ROLE_USER  = 'user';
 
     public const ROLES = [
-        self::ROLE_ADMIN  => 'Verwaltung',
-        self::ROLE_EDITOR => 'Pflege',
+        self::ROLE_ADMIN => 'Webadmin',
+        self::ROLE_USER  => 'Mitmachen',
     ];
 
-    /** Was eine Rolle darf. */
+    /**
+     * Was eine globale Rolle darf, unabhaengig von einer Liga.
+     *
+     * Alles Weitere - Spiele aendern, importieren, Rechte vergeben - haengt
+     * an der Mitgliedschaft am Wettbewerb und steht in Access.
+     */
     private const CAPABILITIES = [
-        self::ROLE_ADMIN => [
-            'matches.edit', 'import.csv', 'import.full',
-            'competitions.manage', 'users.manage',
-        ],
-        self::ROLE_EDITOR => [
-            'matches.edit', 'import.csv',
-        ],
+        self::ROLE_ADMIN => ['users.manage', 'competitions.create', 'system.manage'],
+        self::ROLE_USER  => ['competitions.create'],
     ];
 
     public const USERNAME_PATTERN = '/^[a-zA-Z0-9][a-zA-Z0-9._-]{1,31}$/';
@@ -158,7 +158,7 @@ final class Users
             'username'            => $username,
             'username_normalized' => self::normalize($username),
             'password_hash'       => password_hash((string)$input['password'], PASSWORD_DEFAULT),
-            'role'                => (string)$input['role'],
+            'role'                => (string)($input['role'] ?? self::ROLE_USER),
             'active'              => empty($input['active']) ? 0 : 1,
             'created_at'          => gmdate('Y-m-d H:i:s'),
         ]);
@@ -245,6 +245,40 @@ final class Users
             'SELECT COUNT(*) FROM users WHERE role = ? AND active = 1 AND id <> ?',
             [self::ROLE_ADMIN, $id]
         ) === 0;
+    }
+
+    /**
+     * Bremst automatisierte Massenanmeldungen.
+     *
+     * Ohne Mailadresse gibt es keine Bestaetigung per Post; ein Zaehler je
+     * Herkunft ist das mildeste Mittel, das ueberhaupt wirkt. Gespeichert
+     * wird nur ein Hash der Adresse - fuer das Zaehlen genuegt er, und eine
+     * IP ist ein personenbezogenes Datum.
+     *
+     * @return bool true, wenn noch eine Anmeldung erlaubt ist
+     */
+    public static function mayRegister(string $ip, int $maxProStunde = 3): bool
+    {
+        $hash = hash('sha256', $ip . '|varcheckdb');
+
+        // Alte Eintraege verfallen; sie werden nicht gebraucht und sollen
+        // nicht unbegrenzt liegen bleiben.
+        Db::run('DELETE FROM signup_attempts WHERE created_at < ?', [gmdate('Y-m-d H:i:s', time() - 86400)]);
+
+        $zuletzt = (int)Db::value(
+            'SELECT COUNT(*) FROM signup_attempts WHERE ip_hash = ? AND created_at > ?',
+            [$hash, gmdate('Y-m-d H:i:s', time() - 3600)]
+        );
+
+        return $zuletzt < $maxProStunde;
+    }
+
+    public static function noteRegistration(string $ip): void
+    {
+        Db::insert('signup_attempts', [
+            'ip_hash'    => hash('sha256', $ip . '|varcheckdb'),
+            'created_at' => gmdate('Y-m-d H:i:s'),
+        ]);
     }
 
     public static function normalize(string $username): string

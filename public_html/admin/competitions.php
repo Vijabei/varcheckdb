@@ -6,11 +6,12 @@ declare(strict_types=1);
 require_once __DIR__ . '/../lib/app.php';
 require_once __DIR__ . '/../lib/repo.php';
 require_once __DIR__ . '/../lib/competitions.php';
+require_once __DIR__ . '/../lib/access.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/layout.php';
 
 $config = App::boot();
-Auth::requireCapability('competitions.manage');
+Auth::require();
 
 $errors = [];
 $notices = [];
@@ -41,9 +42,19 @@ if (($_POST['action'] ?? '') === 'create' && Auth::tokenValid()) {
 
     if ($errors === []) {
         try {
-            Competitions::create($eingabe, Auth::username());
+            $csId = Competitions::create($eingabe, Auth::username());
+
+            // Wer anlegt, besitzt. Der Webadmin ohne eigenes Konto - also
+            // ueber den Erstzugang - laesst die Liga besitzerlos; er kommt
+            // ohnehin ueberall heran.
+            $competitionId = Access::competitionOf($csId);
+            if ($competitionId !== null && Auth::userId() !== null) {
+                Access::makeOwner($competitionId, (int)Auth::userId());
+            }
+
             $notices[] = sprintf(
-                'Wettbewerb "%s" angelegt. Als Nächstes eine Importdatei hochladen.',
+                'Wettbewerb "%s" angelegt. Du bist sein Besitzer. Als Nächstes eine '
+                . 'Importdatei hochladen.',
                 $eingabe['name']
             );
             $eingabe = [];
@@ -63,6 +74,8 @@ if (($_POST['action'] ?? '') === 'remove' && Auth::tokenValid()) {
 
     if ($ziel === null) {
         $errors[] = 'Diesen Wettbewerb gibt es nicht.';
+    } elseif (!Access::mayManageSeason(Auth::userId(), Auth::role(), $id)) {
+        $errors[] = 'Nur der Besitzer dieser Liga kann sie entfernen.';
     } elseif ($bestaetigung !== $ziel['shortcut']) {
         // Ein Knopf allein reicht hier nicht: es geht um Daten, die sonst
         // nirgends mehr stehen.
@@ -96,7 +109,52 @@ if (($_POST['action'] ?? '') === 'remove' && Auth::tokenValid()) {
     }
 }
 
+if (($_POST['action'] ?? '') === 'grant' && Auth::tokenValid()) {
+    $competitionId = (int)($_POST['competition_id'] ?? 0);
+    $name = trim((string)($_POST['mitglied'] ?? ''));
+    $rolle = (string)($_POST['mitglied_rolle'] ?? Access::COADMIN);
+
+    if (!Access::mayManage(Auth::userId(), Auth::role(), $competitionId)) {
+        $errors[] = 'Nur der Besitzer dieser Liga kann Rechte vergeben.';
+    } else {
+        $wer = Users::byName($name);
+
+        if ($wer === null) {
+            $errors[] = sprintf('Den Benutzer "%s" gibt es nicht.', $name);
+        } elseif ((int)$wer['active'] !== 1) {
+            $errors[] = sprintf('Das Konto "%s" ist abgeschaltet.', $wer['username']);
+        } else {
+            Access::grant($competitionId, (int)$wer['id'], $rolle, Auth::userId());
+            $notices[] = sprintf(
+                '"%s" ist jetzt %s dieser Liga.',
+                $wer['username'],
+                Access::MEMBER_ROLES[$rolle] ?? $rolle
+            );
+        }
+    }
+}
+
+if (($_POST['action'] ?? '') === 'revoke' && Auth::tokenValid()) {
+    $competitionId = (int)($_POST['competition_id'] ?? 0);
+    $userId = (int)($_POST['user_id'] ?? 0);
+
+    if (!Access::mayManage(Auth::userId(), Auth::role(), $competitionId)) {
+        $errors[] = 'Nur der Besitzer dieser Liga kann Rechte entziehen.';
+    } elseif (!Access::revoke($competitionId, $userId, Auth::userId())) {
+        $errors[] = 'Das geht nicht: eine Liga braucht mindestens einen Besitzer.';
+    } else {
+        $notices[] = 'Die Rechte wurden entzogen.';
+    }
+}
+
 if (($_POST['action'] ?? '') === 'remove_team' && Auth::tokenValid()) {
+    // Mannschaften gehoeren keiner einzelnen Liga; sie zu entfernen ist
+    // Aufraeumen am gemeinsamen Bestand.
+    if (!Users::can(Auth::role(), 'system.manage')) {
+        $errors[] = 'Mannschaften entfernt der Webadmin.';
+        $_POST['team'] = [];
+    }
+
     $entfernt = 0;
     foreach ((array)($_POST['team'] ?? []) as $teamId) {
         if (Competitions::removeTeam((int)$teamId, Auth::username())) {
@@ -129,23 +187,47 @@ admin_nav('competitions.php', $config);
     <p class="empty">Noch kein Wettbewerb angelegt.</p>
   <?php else: ?>
     <table>
-      <thead><tr><th>Kürzel</th><th>Name</th><th>Saison</th><th>Spiele</th><th></th></tr></thead>
+      <thead><tr><th>Kürzel</th><th>Name</th><th>Saison</th><th>Spiele</th><th>Betreut von</th><th></th></tr></thead>
       <tbody>
       <?php foreach ($competitions as $row): ?>
-        <?php $haengt = Competitions::dependents((int)$row['id']); ?>
+        <?php
+        $haengt = Competitions::dependents((int)$row['id']);
+        $competitionId = (int)Access::competitionOf((int)$row['id']);
+        $mitglieder = Access::members($competitionId);
+        $darfPflegen = Access::mayEdit(Auth::userId(), Auth::role(), $competitionId);
+        $darfVerwalten = Access::mayManage(Auth::userId(), Auth::role(), $competitionId);
+        ?>
         <tr>
           <td><code><?= e($row['shortcut']) ?></code></td>
           <td><?= e($row['competition_name']) ?></td>
           <td><?= e($row['season_name']) ?></td>
           <td><?= $haengt['matches'] ?></td>
+          <td class="note">
+            <?php if ($mitglieder === []): ?>
+              <span class="empty">niemand</span>
+            <?php else: ?>
+              <?= e(implode(', ', array_map(
+                  static fn(array $m): string => $m['username']
+                      . ($m['role'] === Access::OWNER ? '' : ' (Co)'),
+                  $mitglieder
+              ))) ?>
+            <?php endif; ?>
+          </td>
           <td>
-            <a href="matches.php?competition=<?= (int)$row['id'] ?>">Spielplan</a> &middot;
-            <a href="?loeschen=<?= (int)$row['id'] ?>">entfernen</a>
+            <?php if ($darfPflegen): ?>
+              <a href="matches.php?competition=<?= (int)$row['id'] ?>">Spielplan</a>
+            <?php endif; ?>
+            <?php if ($darfVerwalten): ?>
+              &middot; <a href="?rechte=<?= $competitionId ?>">Rechte</a>
+              &middot; <a href="?loeschen=<?= (int)$row['id'] ?>">entfernen</a>
+            <?php endif; ?>
           </td>
         </tr>
       <?php endforeach; ?>
       </tbody>
     </table>
+    <p class="note">Ligen, bei denen keine Verweise stehen, gehören anderen. Wer
+       mitarbeiten möchte, fragt deren Besitzer.</p>
   <?php endif; ?>
 </div>
 
@@ -200,8 +282,83 @@ foreach ($competitions as $row) {
   </div>
 <?php endif; ?>
 
+<?php
+$rechteId = (int)($_GET['rechte'] ?? 0);
+$rechteLiga = $rechteId > 0
+    ? Db::one('SELECT id, name FROM competitions WHERE id = ?', [$rechteId])
+    : null;
+
+if ($rechteLiga !== null && !Access::mayManage(Auth::userId(), Auth::role(), $rechteId)) {
+    $rechteLiga = null;
+}
+?>
+
+<?php if ($rechteLiga !== null): ?>
+  <div class="card">
+    <h2 style="margin-top:0">Rechte an „<?= e($rechteLiga['name']) ?>"</h2>
+
+    <table>
+      <thead><tr><th>Benutzer</th><th>Rolle</th><th>Seit</th><th></th></tr></thead>
+      <tbody>
+      <?php foreach (Access::members($rechteId) as $m): ?>
+        <tr>
+          <td>
+            <?= e($m['username']) ?>
+            <?php if ((int)$m['user_id'] === Auth::userId()): ?><span class="note">(du)</span><?php endif; ?>
+            <?php if ((int)$m['active'] !== 1): ?><span class="note">— abgeschaltet</span><?php endif; ?>
+          </td>
+          <td><?= e(Access::MEMBER_ROLES[$m['role']] ?? $m['role']) ?></td>
+          <td class="note"><?= e(substr((string)$m['created_at'], 0, 10)) ?></td>
+          <td>
+            <?php if (!($m['role'] === Access::OWNER && Access::ownerCount($rechteId) <= 1)): ?>
+              <form method="post" style="display:inline">
+                <input type="hidden" name="token" value="<?= e(Auth::token()) ?>">
+                <input type="hidden" name="action" value="revoke">
+                <input type="hidden" name="competition_id" value="<?= $rechteId ?>">
+                <input type="hidden" name="user_id" value="<?= (int)$m['user_id'] ?>">
+                <button type="submit" class="ghost" style="padding:.2rem .6rem;font-size:.85rem">entziehen</button>
+              </form>
+            <?php else: ?>
+              <span class="note">letzter Besitzer</span>
+            <?php endif; ?>
+          </td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
+
+    <form method="post" style="margin-top:1.5rem">
+      <input type="hidden" name="token" value="<?= e(Auth::token()) ?>">
+      <input type="hidden" name="action" value="grant">
+      <input type="hidden" name="competition_id" value="<?= $rechteId ?>">
+
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:2;min-width:12rem">
+          <label for="mitglied">Benutzername</label>
+          <input type="text" id="mitglied" name="mitglied" autocomplete="off" required>
+        </div>
+        <div style="flex:1;min-width:9rem">
+          <label for="mitglied_rolle">Rolle</label>
+          <select id="mitglied_rolle" name="mitglied_rolle">
+            <?php foreach (Access::MEMBER_ROLES as $k => $v): ?>
+              <option value="<?= $k ?>" <?= $k === Access::COADMIN ? 'selected' : '' ?>><?= e($v) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div><button type="submit">Hinzufügen</button></div>
+      </div>
+      <p class="note">Ein <strong>Co-Admin</strong> pflegt und importiert. Ein
+         <strong>Besitzer</strong> kann zusätzlich Rechte vergeben und die Liga entfernen.
+         Eine Liga braucht immer mindestens einen Besitzer.</p>
+    </form>
+
+    <div class="actions"><a href="competitions.php" class="note">Fertig</a></div>
+  </div>
+<?php endif; ?>
+
 <div class="card">
   <h2 style="margin-top:0">Neu anlegen</h2>
+  <p class="note">Wer eine Liga anlegt, betreut sie und kann andere dazunehmen.</p>
 
   <form method="post">
     <input type="hidden" name="token" value="<?= e(Auth::token()) ?>">
