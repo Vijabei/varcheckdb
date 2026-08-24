@@ -199,6 +199,7 @@ if ($step === 4 && $_SERVER['REQUEST_METHOD'] === 'POST' && $errors === []) {
     $timezone    = post('timezone', 'Europe/Berlin');
     $attribution = post('attribution');
     $adminUser   = trim((string)($_POST['admin_username'] ?? ''));
+    $adminMail   = trim((string)($_POST['admin_email'] ?? ''));
     $adminPass   = (string)($_POST['admin_password'] ?? '');
     $adminRepeat = (string)($_POST['admin_password_repeat'] ?? '');
 
@@ -211,6 +212,10 @@ if ($step === 4 && $_SERVER['REQUEST_METHOD'] === 'POST' && $errors === []) {
     if (preg_match(Users::USERNAME_PATTERN, $adminUser) !== 1) {
         $errors[] = 'Der Benutzername darf Buchstaben, Ziffern, Punkt, Bindestrich und '
             . 'Unterstrich enthalten und muss 2 bis 32 Zeichen lang sein.';
+    }
+    if (!filter_var($adminMail, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Die Mailadresse sieht nicht wie eine Adresse aus. Ohne sie kannst '
+            . 'du dein eigenes Passwort nicht zuruecksetzen.';
     }
     if (mb_strlen($adminPass) < Users::MIN_PASSWORD_LENGTH) {
         $errors[] = sprintf('Das Passwort muss mindestens %d Zeichen haben.', Users::MIN_PASSWORD_LENGTH);
@@ -260,12 +265,18 @@ if ($step === 4 && $_SERVER['REQUEST_METHOD'] === 'POST' && $errors === []) {
                     // Der erste Zugang wird als Benutzer angelegt, nicht nur
                     // als Passwort in der Konfiguration.
                     Db::set($pdo);
-                    Users::create([
+                    $adminId = Users::create([
                         'username' => $adminUser,
+                        'email'    => $adminMail,
                         'password' => $adminPass,
                         'role'     => Users::ROLE_ADMIN,
                         'active'   => 1,
                     ], 'installer');
+
+                    // Die eigene Adresse gilt als bestaetigt: sie wurde hier
+                    // gerade eingetippt, und ohne sie kaeme der Webadmin bei
+                    // einem vergessenen Passwort nicht mehr herein.
+                    Users::markVerified($adminId);
                     $notices[] = sprintf('Webadmin "%s" angelegt.', $adminUser);
 
                     $written = Installer::writeConfig(CONFIG_FILE, [
@@ -283,6 +294,7 @@ if ($step === 4 && $_SERVER['REQUEST_METHOD'] === 'POST' && $errors === []) {
                         'timezone'            => $timezone,
                         'attribution'         => $attribution,
                         'admin_password_hash' => password_hash($adminPass, PASSWORD_DEFAULT),
+                        'mail_from'           => '',
                     ]);
 
                     if (!$written['ok']) {
@@ -605,9 +617,16 @@ code { background: #eef0f2; padding: .1rem .3rem; border-radius: .2rem; font-siz
        Wettbewerbe und Importe verwalten. Weitere Zugänge legst du später im
        Adminbereich an.</p>
 
+    <label for="admin_email">Mailadresse</label>
+    <input type="text" id="admin_email" name="admin_email"
+           value="<?= e(stored('admin_email')) ?>" autocomplete="email" required>
+    <p class="note">Für das Zurücksetzen des eigenen Passworts. Sie gilt sofort als
+       bestätigt &ndash; du hast sie ja gerade eingetippt.</p>
+
     <label for="admin_password">Passwort</label>
     <input type="password" id="admin_password" name="admin_password" autocomplete="new-password" required>
-    <p class="note">Mindestens 10 Zeichen. Es wird nur als Hash gespeichert, nie im Klartext.</p>
+    <p class="note">Mindestens <?= Users::MIN_PASSWORD_LENGTH ?> Zeichen. Es wird nur als Hash
+       gespeichert, nie im Klartext.</p>
 
     <label for="admin_password_repeat">Passwort wiederholen</label>
     <input type="password" id="admin_password_repeat" name="admin_password_repeat" autocomplete="new-password" required>

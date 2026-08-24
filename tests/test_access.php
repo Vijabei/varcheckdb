@@ -9,11 +9,11 @@ function access_fixture(): array
     fresh_db();
 
     $webadmin = Users::create(['username' => 'webadmin', 'password' => 'einLangesPasswort',
-        'role' => Users::ROLE_ADMIN, 'active' => 1], 'installer');
+        'email' => 'webadmin@example.org', 'role' => Users::ROLE_ADMIN, 'active' => 1], 'installer');
     $anna  = Users::create(['username' => 'anna',  'password' => 'einLangesPasswort',
         'role' => Users::ROLE_USER, 'active' => 1], 'anmeldung');
     $berta = Users::create(['username' => 'berta', 'password' => 'einLangesPasswort',
-        'role' => Users::ROLE_USER, 'active' => 1], 'anmeldung');
+        'email' => 'berta@example.org', 'role' => Users::ROLE_USER, 'active' => 1], 'anmeldung');
 
     // anna legt eine Liga an und wird ihre Besitzerin.
     $csId = Competitions::create([
@@ -61,7 +61,7 @@ T::ok(!Access::mayEdit($anna, Users::ROLE_USER, $herrenlos), 'anna darf auch kei
 
 // Genau das macht offene Anmeldung unbedenklich.
 $neu = Users::create(['username' => 'fremder', 'password' => 'einLangesPasswort',
-    'role' => Users::ROLE_USER, 'active' => 1], 'anmeldung');
+    'email' => 'fremder@example.org', 'role' => Users::ROLE_USER, 'active' => 1], 'anmeldung');
 T::ok(!Access::mayEdit($neu, Users::ROLE_USER, $annasLiga),
     'ein frisch angemeldetes Konto kann an bestehenden Ligen nichts aendern');
 T::ok(!Access::mayEdit($neu, Users::ROLE_USER, $herrenlos), 'an gar keiner');

@@ -121,13 +121,17 @@ CREATE TABLE users (
   id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   username            VARCHAR(64)  NOT NULL,
   username_normalized VARCHAR(64)  NOT NULL,
+  email               VARCHAR(191)     NULL,
+  email_normalized    VARCHAR(191)     NULL,
+  email_verified_at   DATETIME         NULL,
   password_hash       VARCHAR(255) NOT NULL,
   role                VARCHAR(16)  NOT NULL DEFAULT 'user',
   active              TINYINT(1)   NOT NULL DEFAULT 1,
   created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_login_at       DATETIME         NULL,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_users_username (username_normalized)
+  UNIQUE KEY uq_users_username (username_normalized),
+  UNIQUE KEY uq_users_email (email_normalized)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Wer darf an einem Wettbewerb arbeiten.
@@ -153,6 +157,24 @@ CREATE TABLE competition_members (
   KEY ix_member_user (user_id),
   CONSTRAINT fk_member_competition FOREIGN KEY (competition_id) REFERENCES competitions (id) ON DELETE CASCADE,
   CONSTRAINT fk_member_user        FOREIGN KEY (user_id)        REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Einmalige Marken fuer Mailbestaetigung und Passwort-Ruecksetzung.
+--
+-- Gespeichert wird nur der Hash: wer die Datenbank liest, kann damit keine
+-- fremde Marke einloesen. Sie gelten kurz und nur einmal.
+CREATE TABLE user_tokens (
+  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id    BIGINT UNSIGNED NOT NULL,
+  kind       VARCHAR(16)  NOT NULL,
+  token_hash CHAR(64)     NOT NULL,
+  expires_at DATETIME     NOT NULL,
+  used_at    DATETIME         NULL,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_token (token_hash),
+  KEY ix_token_user (user_id, kind),
+  CONSTRAINT fk_token_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Anmeldeversuche, um automatisierte Massenanmeldungen zu bremsen.

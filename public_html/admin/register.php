@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../lib/app.php';
 require_once __DIR__ . '/../lib/users.php';
+require_once __DIR__ . '/../lib/mail.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/layout.php';
 
@@ -23,6 +24,7 @@ if (Auth::isLoggedIn()) {
 }
 
 $errors = [];
+$notices = [];
 $fertig = false;
 $eingabe = [];
 
@@ -34,6 +36,7 @@ function e(?string $v): string
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $eingabe = [
         'username'        => trim((string)($_POST['username'] ?? '')),
+        'email'           => trim((string)($_POST['email'] ?? '')),
         'password'        => (string)($_POST['password'] ?? ''),
         'password_repeat' => (string)($_POST['password_repeat'] ?? ''),
         'role'            => Users::ROLE_USER,
@@ -51,9 +54,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors = Users::validate($eingabe);
 
         if ($errors === []) {
-            Users::create($eingabe, 'anmeldung');
+            $id = Users::create($eingabe, 'anmeldung');
             Users::noteRegistration($ip);
             $fertig = true;
+
+            // Das Konto ist sofort nutzbar. Die Bestaetigung entscheidet nur
+            // darueber, ob ein vergessenes Passwort selbst zurueckgesetzt
+            // werden kann - der Mailversand darf das Mitmachen nicht aufhalten.
+            $token = Users::createToken($id, 'verify');
+            $link = rtrim((string)($config['base_url'] ?? ''), '/')
+                . '/admin/bestaetigen.php?marke=' . urlencode($token);
+
+            $versand = Mail::send(
+                $config,
+                $eingabe['email'],
+                'Mailadresse bestätigen',
+                sprintf(
+                    "Hallo %s,\n\ndein Konto ist angelegt. Mit diesem Verweis bestätigst "
+                    . "du deine Adresse:\n\n%s\n\nEr gilt eine Stunde.\n\n"
+                    . "Erst mit bestätigter Adresse kannst du ein vergessenes Passwort "
+                    . "selbst zurücksetzen. Anmelden und arbeiten kannst du sofort.\n",
+                    $eingabe['username'],
+                    $link
+                )
+            );
+
+            if ($versand['ok']) {
+                $notices[] = sprintf('Eine Bestätigung ist an %s unterwegs.', $eingabe['email']);
+            } else {
+                $errors[] = 'Das Konto ist angelegt, aber die Bestätigungsmail ging nicht '
+                    . 'hinaus: ' . $versand['message']
+                    . ' Du kannst dich trotzdem anmelden; für einen Passwort-Reset wende '
+                    . 'dich dann an den Webadmin.';
+            }
+
             $eingabe = [];
         }
     }
@@ -67,6 +101,12 @@ admin_head('Anmelden', $config);
   <?php if ($fertig): ?>
     <div class="card">
       <div class="msg good">Das Konto ist angelegt.</div>
+      <?php foreach ($notices as $notice): ?>
+        <div class="msg good"><?= e($notice) ?></div>
+      <?php endforeach; ?>
+      <?php foreach ($errors as $error): ?>
+        <div class="msg bad"><?= e($error) ?></div>
+      <?php endforeach; ?>
       <p>Du kannst dich jetzt anmelden, eigene Ligen anlegen und pflegen.</p>
       <div class="actions"><a href="index.php"><button type="button">Zur Anmeldung</button></a></div>
     </div>
@@ -82,6 +122,12 @@ admin_head('Anmelden', $config);
         <label for="username">Benutzername</label>
         <input type="text" id="username" name="username" value="<?= e($eingabe['username'] ?? '') ?>"
                autocomplete="username" autofocus required>
+
+        <label for="email">Mailadresse</label>
+        <input type="text" id="email" name="email" value="<?= e($eingabe['email'] ?? '') ?>"
+               autocomplete="email" required>
+        <p class="note">Wird nur gebraucht, um ein vergessenes Passwort zurückzusetzen.
+           Sonst passiert damit nichts.</p>
 
         <label for="password">Passwort</label>
         <input type="password" id="password" name="password" autocomplete="new-password" required>
@@ -102,8 +148,8 @@ admin_head('Anmelden', $config);
       <p class="note">Eigene Ligen anlegen und pflegen, Daten importieren und exportieren.
          Wer eine Liga anlegt, betreut sie und kann andere als Co-Admin dazunehmen.
          An fremden Ligen kannst du nichts ändern &ndash; dafür fragst du deren Besitzer.</p>
-      <p class="note">Es wird keine Mailadresse gespeichert. Das heißt auch: ein vergessenes
-         Passwort kann nur der Webadmin zurücksetzen.</p>
+      <p class="note">Die Mailadresse dient allein dem Zurücksetzen des Passworts.
+         Es gibt keinen Newsletter und keine Weitergabe.</p>
     </div>
   <?php endif; ?>
 </main>

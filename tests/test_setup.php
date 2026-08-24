@@ -44,7 +44,7 @@ T::group('Installer - SQL zerlegen');
 $statements = Installer::statements((string)file_get_contents(ROOT . '/db/schema.mysql.sql'));
 $creates = array_filter($statements, fn(string $s): bool => str_starts_with($s, 'CREATE TABLE'));
 
-T::same(18, count($creates), 'alle 18 CREATE TABLE werden einzeln erkannt');
+T::same(19, count($creates), 'alle 19 CREATE TABLE werden einzeln erkannt');
 T::same(0, count(array_filter($statements, fn(string $s): bool => str_contains($s, '--'))),
     'Kommentarzeilen sind entfernt');
 T::same(0, count(array_filter($statements, fn(string $s): bool => trim($s) === '')),
@@ -181,7 +181,7 @@ foreach ($blocks as [, $table, $body]) {
     $created[] = $table;
 }
 
-T::same(18, count($blocks), 'das Schema enthaelt 18 Tabellen');
+T::same(19, count($blocks), 'das Schema enthaelt 19 Tabellen');
 T::same([], $forward, 'keine Tabelle verweist auf eine spaeter angelegte');
 T::ok(!str_contains($schema, 'FOREIGN_KEY_CHECKS'),
     'die Fremdschluesselpruefung muss nicht abgeschaltet werden');

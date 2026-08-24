@@ -93,12 +93,16 @@ CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL,
   username_normalized TEXT NOT NULL,
+  email TEXT NULL,
+  email_normalized TEXT NULL,
+  email_verified_at TEXT NULL,
   password_hash TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'user',
   active INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_login_at TEXT NULL,
-  UNIQUE (username_normalized)
+  UNIQUE (username_normalized),
+  UNIQUE (email_normalized)
 );
 
 CREATE TABLE competition_members (
@@ -114,6 +118,20 @@ CREATE TABLE competition_members (
 );
 
 CREATE INDEX ix_member_user ON competition_members (user_id);
+
+CREATE TABLE user_tokens (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  kind TEXT NOT NULL,
+  token_hash CHAR(64) NOT NULL,
+  expires_at TEXT NOT NULL,
+  used_at TEXT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (token_hash),
+  CONSTRAINT fk_token_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+CREATE INDEX ix_token_user ON user_tokens (user_id, kind);
 
 CREATE TABLE signup_attempts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

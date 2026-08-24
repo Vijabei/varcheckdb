@@ -21,7 +21,7 @@ T::ok(!Users::can('gibtesnicht', 'competitions.create'), 'eine unbekannte Rolle 
 T::group('Users - Benutzernamen pruefen');
 
 fresh_db();
-$basis = ['password' => 'einLangesPasswort', 'role' => Users::ROLE_USER];
+$basis = ['password' => 'einLangesPasswort', 'role' => Users::ROLE_USER, 'email' => 'test@example.org'];
 
 foreach (['anna', 'max.mustermann', 'staffel-west', 'user_1', 'a1'] as $name) {
     T::same([], Users::validate($basis + ['username' => $name]), sprintf('"%s" wird angenommen', $name));
@@ -39,12 +39,12 @@ foreach ([
         sprintf('"%s" wird abgelehnt (%s)', mb_substr($name, 0, 12), $warum));
 }
 
-T::ok(Users::validate(['username' => 'anna', 'password' => 'kurz', 'role' => Users::ROLE_USER]) !== [],
+T::ok(Users::validate(['username' => 'anna', 'password' => 'kurz', 'role' => Users::ROLE_USER, 'email' => 'a@example.org']) !== [],
     'ein zu kurzes Passwort wird abgelehnt');
 T::ok(Users::validate(['username' => 'anna', 'password' => 'einLangesPasswort',
-    'password_repeat' => 'etwasAnderes', 'role' => Users::ROLE_USER]) !== [],
+    'password_repeat' => 'etwasAnderes', 'role' => Users::ROLE_USER, 'email' => 'a@example.org']) !== [],
     'zwei verschiedene Passwoerter werden abgelehnt');
-T::ok(Users::validate(['username' => 'anna', 'password' => 'einLangesPasswort', 'role' => 'chef']) !== [],
+T::ok(Users::validate(['username' => 'anna', 'password' => 'einLangesPasswort', 'role' => 'chef', 'email' => 'a@example.org']) !== [],
     'eine unbekannte Rolle wird abgelehnt');
 
 T::group('Users - anlegen und anmelden');
@@ -71,7 +71,7 @@ T::same(null, Users::authenticate('gibtesnicht', 'einLangesPasswort'), 'ein unbe
 T::ok(Users::authenticate('ANNA', 'einLangesPasswort') !== null,
     'die Schreibweise des Namens ist gleichgueltig');
 
-T::ok(Users::validate(['username' => 'Anna', 'password' => 'einLangesPasswort', 'role' => Users::ROLE_USER]) !== [],
+T::ok(Users::validate(['username' => 'Anna', 'password' => 'einLangesPasswort', 'role' => Users::ROLE_USER, 'email' => 'anders@example.org']) !== [],
     'derselbe Name in anderer Schreibweise wird abgelehnt');
 
 T::group('Users - abgeschaltete Konten');
@@ -139,7 +139,7 @@ T::group('Users - Teilaenderungen lassen den Rest in Ruhe');
 fresh_db();
 $id = Users::create([
     'username' => 'dora', 'password' => 'einLangesPasswort',
-    'role' => Users::ROLE_ADMIN, 'active' => 1,
+    'email' => 'dora@example.org', 'role' => Users::ROLE_ADMIN, 'active' => 1,
 ]);
 
 Users::update($id, ['password' => 'einAnderesLangesPasswort'], 'dora');

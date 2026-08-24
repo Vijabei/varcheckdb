@@ -22,6 +22,20 @@ return [
     // Quellenhinweis, der in den API-Antworten mitgeliefert wird
     'attribution' => 'Daten gepflegt von vijabei.net',
 
+    // Mailversand fuer Bestaetigung und Passwort-Ruecksetzung.
+    //
+    // Der Absender muss auf der eigenen Domain liegen, sonst scheitert die
+    // SPF-Pruefung beim Empfaenger und die Nachricht landet im Spam. Ohne
+    // Angabe wird noreply@<domain aus base_url> verwendet.
+    //
+    // enabled => false schaltet den Versand ab. Konten lassen sich dann
+    // weiterhin anlegen, nur der Selbst-Reset steht still.
+    'mail' => [
+        'enabled'  => true,
+        'from'     => '',
+        'reply_to' => '',
+    ],
+
     // true zeigt PHP-Fehler im Browser. Auf dem Produktivsystem: false.
     'debug' => false,
 ];

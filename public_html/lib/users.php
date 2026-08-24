@@ -38,6 +38,9 @@ final class Users
     public const USERNAME_PATTERN = '/^[a-zA-Z0-9][a-zA-Z0-9._-]{1,31}$/';
     public const MIN_PASSWORD_LENGTH = 10;
 
+    /** Wie lange eine Bestaetigungs- oder Ruecksetzmarke gilt. */
+    public const TOKEN_MINUTES = 60;
+
     public static function can(?string $role, string $capability): bool
     {
         return in_array($capability, self::CAPABILITIES[$role] ?? [], true);
@@ -126,6 +129,21 @@ final class Users
             $errors[] = 'Unbekannte Rolle.';
         }
 
+        $email = self::normalizeEmail((string)($input['email'] ?? ''));
+
+        if ($email === '') {
+            $errors[] = 'Eine Mailadresse wird gebraucht - ohne sie laesst sich ein '
+                . 'vergessenes Passwort nicht zuruecksetzen.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Die Mailadresse sieht nicht wie eine Adresse aus.';
+        } else {
+            $vorhandenMail = Db::one('SELECT id FROM users WHERE email_normalized = ?', [$email]);
+            if ($vorhandenMail !== null && (int)$vorhandenMail['id'] !== $ignoreId) {
+                // Keine Auskunft darueber, wem sie gehoert.
+                $errors[] = 'Diese Mailadresse wird bereits verwendet.';
+            }
+        }
+
         // Beim Anlegen ist ein Passwort noetig, beim Aendern nur, wenn eines
         // eingegeben wurde.
         if ($ignoreId === null || $password !== '') {
@@ -157,6 +175,8 @@ final class Users
         $id = Db::insert('users', [
             'username'            => $username,
             'username_normalized' => self::normalize($username),
+            'email'               => trim((string)($input['email'] ?? '')) ?: null,
+            'email_normalized'    => self::normalizeEmail((string)($input['email'] ?? '')) ?: null,
             'password_hash'       => password_hash((string)$input['password'], PASSWORD_DEFAULT),
             'role'                => (string)($input['role'] ?? self::ROLE_USER),
             'active'              => empty($input['active']) ? 0 : 1,
@@ -197,6 +217,18 @@ final class Users
             $write['active'] = $active;
             $changed[] = 'active';
             self::log($id, 'active', (string)$user['active'], (string)$active, $actor);
+        }
+
+        if (array_key_exists('email', $input)) {
+            $neu = self::normalizeEmail((string)$input['email']);
+            if ($neu !== '' && $neu !== (string)$user['email_normalized']) {
+                $write['email'] = trim((string)$input['email']);
+                $write['email_normalized'] = $neu;
+                // Eine neue Adresse ist zunaechst unbestaetigt.
+                $write['email_verified_at'] = null;
+                $changed[] = 'email';
+                self::log($id, 'email', $user['email'], $write['email'], $actor);
+            }
         }
 
         if (($input['password'] ?? '') !== '') {
@@ -279,6 +311,105 @@ final class Users
             'ip_hash'    => hash('sha256', $ip . '|varcheckdb'),
             'created_at' => gmdate('Y-m-d H:i:s'),
         ]);
+    }
+
+    public static function byEmail(string $email): ?array
+    {
+        $email = self::normalizeEmail($email);
+
+        return $email === ''
+            ? null
+            : Db::one('SELECT * FROM users WHERE email_normalized = ?', [$email]);
+    }
+
+    public static function isVerified(array $user): bool
+    {
+        return ($user['email_verified_at'] ?? null) !== null;
+    }
+
+    /**
+     * Erzeugt eine einmalige Marke.
+     *
+     * Zurueck kommt der Klartext - er steht nur in der Mail. In der Datenbank
+     * liegt allein sein Hash.
+     */
+    public static function createToken(int $userId, string $kind): string
+    {
+        // Aeltere Marken derselben Art verfallen; sonst gaebe es mehrere
+        // gueltige Wege gleichzeitig.
+        Db::run('DELETE FROM user_tokens WHERE user_id = ? AND kind = ?', [$userId, $kind]);
+
+        $token = bin2hex(random_bytes(32));
+
+        Db::insert('user_tokens', [
+            'user_id'    => $userId,
+            'kind'       => $kind,
+            'token_hash' => hash('sha256', $token),
+            'expires_at' => gmdate('Y-m-d H:i:s', time() + self::TOKEN_MINUTES * 60),
+            'created_at' => gmdate('Y-m-d H:i:s'),
+        ]);
+
+        return $token;
+    }
+
+    /**
+     * Prueft eine Marke, ohne sie zu verbrauchen.
+     *
+     * Wird gebraucht, um das Formular zu zeigen, bevor abgeschickt wird -
+     * sonst waere die Marke schon beim Anzeigen der Seite aufgebraucht und
+     * ein Tippfehler im Passwort haette sie wertlos gemacht.
+     */
+    public static function peekToken(string $token, string $kind): ?array
+    {
+        $row = self::findToken($token, $kind);
+
+        return $row === null ? null : self::find((int)$row['user_id']);
+    }
+
+    /** Loest eine Marke ein. Danach ist sie verbraucht. */
+    public static function useToken(string $token, string $kind): ?array
+    {
+        $row = self::findToken($token, $kind);
+
+        if ($row === null) {
+            return null;
+        }
+
+        Db::update('user_tokens', (int)$row['id'], ['used_at' => gmdate('Y-m-d H:i:s')]);
+
+        return self::find((int)$row['user_id']);
+    }
+
+    /** Die gueltige, unverbrauchte Marke, oder null. */
+    private static function findToken(string $token, string $kind): ?array
+    {
+        $row = Db::one(
+            'SELECT * FROM user_tokens WHERE token_hash = ? AND kind = ?',
+            [hash('sha256', $token), $kind]
+        );
+
+        if ($row === null || $row['used_at'] !== null) {
+            return null;
+        }
+
+        return (string)$row['expires_at'] < gmdate('Y-m-d H:i:s') ? null : $row;
+    }
+
+    public static function markVerified(int $userId): void
+    {
+        Db::update('users', $userId, ['email_verified_at' => gmdate('Y-m-d H:i:s')]);
+        self::log($userId, 'email_verified', null, 'bestaetigt', 'system');
+    }
+
+    public static function setPassword(int $userId, string $password, string $actor): void
+    {
+        Db::update('users', $userId, ['password_hash' => password_hash($password, PASSWORD_DEFAULT)]);
+        self::log($userId, 'password', null, 'zurueckgesetzt', $actor);
+    }
+
+    public static function normalizeEmail(string $email): string
+    {
+        return mb_strtolower(trim($email), 'UTF-8');
     }
 
     public static function normalize(string $username): string

@@ -87,7 +87,7 @@ if (!Auth::isLoggedIn()) {
       <?php else: ?>
         <p class="note">Noch kein Konto? <a href="register.php">Hier anlegen</a> &ndash;
            damit kannst du eigene Ligen führen.</p>
-        <p class="note">Passwort vergessen? Nur der Webadmin kann es zurücksetzen.</p>
+        <p class="note"><a href="passwort.php">Passwort vergessen?</a></p>
       <?php endif; ?>
     </main>
     <?php

@@ -40,13 +40,63 @@ eine Liga betreut, betreut sie über die Jahre.
 
 ## Mitmachen
 
-Konto anlegen unter `/admin/register.php`. Es wird **keine Mailadresse**
-gespeichert — es geht hier nicht um Geld und nicht um private Daten. Das heißt
-aber auch: ein vergessenes Passwort kann nur der Webadmin zurücksetzen.
+Konto anlegen unter `/admin/register.php`. Gebraucht werden Benutzername,
+Mailadresse und Passwort.
+
+**Die Mailadresse dient allein dem Zurücksetzen des Passworts.** Kein
+Newsletter, keine Weitergabe. Ohne sie wäre der Webadmin die Anlaufstelle für
+den häufigsten Supportfall überhaupt — das lohnt den einen gespeicherten Wert.
+
+**Das Konto ist sofort nutzbar.** Die Bestätigung der Adresse entscheidet nur
+darüber, ob ein vergessenes Passwort selbst zurückgesetzt werden kann. Fällt
+der Mailversand aus, kann trotzdem jeder mitmachen — das Mitmachen darf nicht
+am Mailserver hängen.
 
 Gegen automatisierte Massenanmeldungen gibt es eine Bremse: höchstens drei
 Konten je Herkunft und Stunde. Gespeichert wird nur ein Hash der Adresse, denn
 zum Zählen genügt er und eine IP ist ein personenbezogenes Datum.
+
+## Passwort vergessen
+
+Unter *Passwort vergessen* die Adresse eintragen; ein Verweis kommt per Mail
+und gilt eine Stunde, einmal.
+
+Drei Dinge, die dabei bewusst so sind:
+
+**Es wird nicht verraten, ob es die Adresse gibt.** Die Antwort lautet immer
+gleich — sonst ließe sich ausprobieren, wer hier ein Konto hat. Ob überhaupt
+versendet werden kann, wird deshalb *vor* der Suche geklärt.
+
+**Nur bestätigte Adressen bekommen einen Verweis.** Sonst könnte jemand bei
+der Anmeldung eine fremde Adresse eintragen und darüber später deren Konto
+übernehmen.
+
+**Eine geänderte Adresse gilt wieder als unbestätigt.** Aus demselben Grund.
+
+Scheitert der Versand, sieht der Benutzer weiterhin die neutrale Antwort — der
+Fehlschlag landet aber im Änderungsprotokoll, damit der Webadmin ihn bemerkt.
+
+### Wenn kein Mailversand eingerichtet ist
+
+Dann sagt die Seite das offen, für alle Adressen gleich, und verweist an den
+Webadmin. Ein Weg, der so tut als hätte er gesendet, ist schlimmer als eine
+Absage.
+
+Abschalten lässt sich der Versand in `config.php` mit
+`'mail' => ['enabled' => false]`.
+
+### Zustellung
+
+Der Absender muss auf der eigenen Domain liegen, sonst scheitert die
+SPF-Prüfung beim Empfänger. Ohne Angabe wird `noreply@<domain aus base_url>`
+verwendet.
+
+Für vijabei.net ist SPF gesetzt (`v=spf1 +a +mx ?all`), DMARC fehlt. Ein
+DMARC-Eintrag verbessert die Zustellung spürbar:
+
+```text
+_dmarc.vijabei.net.  TXT  "v=DMARC1; p=none; rua=mailto:postmaster@vijabei.net"
+```
 
 ## An einer fremden Liga mitarbeiten
 
@@ -97,10 +147,8 @@ werden — das ist der Zweck des Projekts.
 
 ## Ausgesperrt
 
-Es gibt bewusst kein Zurücksetzen per Mail: dafür bräuchte es einen
-Mailversand, der eingerichtet und gepflegt sein will.
-
-Kommt der Webadmin selbst nicht mehr herein, hilft ein neuer Passwort-Hash
+Kommt der Webadmin selbst nicht mehr herein und geht auch das Zurücksetzen
+per Mail nicht, hilft ein neuer Passwort-Hash
 direkt in der Datenbank — über phpMyAdmin oder die Hetzner-Konsole:
 
 ```bash
@@ -118,7 +166,8 @@ Gibt es gar keinen aktiven Webadmin mehr, greift wieder das Passwort aus
 
 ## Was es nicht gibt
 
-Kein Zurücksetzen per Mail, keine Zwei-Faktor-Anmeldung, kein Antragsweg mit
-Postfach, keine Rechte feiner als Besitzer und Co-Admin. Nichts davon wird
+Keine Zwei-Faktor-Anmeldung, kein Antragsweg mit Postfach, keine Rechte feiner
+als Besitzer und Co-Admin, keine Mailbenachrichtigungen ausser den beiden
+oben. Nichts davon wird
 gebraucht, solange eine überschaubare Zahl von Leuten eine überschaubare Zahl
 von Ligen pflegt.
