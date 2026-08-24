@@ -3,45 +3,12 @@
 Was gebaut ist, steht im [README](../README.md). Hier steht, was fehlt und
 warum es fehlt.
 
-## Benutzerkonten
+## Offen
 
-**Der nächste größere Baustein.** Zurzeit gibt es ein einziges Passwort und
-keine Benutzer. Das trägt, solange eine Person pflegt.
-
-Die Voraussetzung dafür steht inzwischen: Wettbewerbe lassen sich im
-Adminbereich anlegen und entfernen. Vorher hätten Rollen nichts gehabt, worauf
-sie sich beziehen — „darf Wettbewerbe anlegen" ist keine sinnvolle Berechtigung,
-wenn das nur über `seed.sql` geht.
-
-Sobald zwei Leute pflegen, fehlt die Antwort auf „wer war das?". Die Datenbank
-ist darauf vorbereitet: `change_log.actor` ist eine Textspalte und steht
-heute auf `admin` oder `import`. Ein echter Benutzername passt dort ohne
-Schemaänderung hinein. Auch `match_field_sources` merkt sich bereits, welche
-Quelle ein Feld zuletzt gesetzt hat — nur eben nicht, welcher Mensch.
-
-Minimalistisch heißt: kein Rechtesystem, keine Gruppen, keine
-Selbstregistrierung.
-
-- Tabelle `users`: Name, Passwort-Hash, aktiv ja/nein, angelegt am
-- Anmeldung über Name statt nur Passwort
-- `change_log.actor` bekommt den Benutzernamen
-- Zwei Rollen genügen fürs Erste:
-  - **Verwaltung** — darf importieren, Wettbewerbe anlegen, Benutzer pflegen
-  - **Pflege** — darf Spiele ändern, aber nicht importieren und keine
-    Benutzer anlegen
-- Angelegt werden Benutzer nur von der Verwaltung
-
-Was bewusst wegbleibt, solange es niemand braucht: Passwort-vergessen per
-Mail, Zwei-Faktor, Rechte je Wettbewerb, Sitzungsverwaltung über mehrere
-Geräte.
-
-Zu klären, bevor gebaut wird: Soll jemand nur *seinen* Wettbewerb pflegen
-dürfen? Das wäre der Punkt, an dem aus zwei Rollen ein Rechtesystem wird —
-und der Aufwand deutlich steigt.
-
-Das Entfernen eines Wettbewerbs sollte in jedem Fall der Verwaltung
-vorbehalten bleiben. Es ist der einzige Weg in der Anwendung, auf dem Daten
-unwiederbringlich verschwinden.
+**Rechte je Wettbewerb.** Zurzeit gilt eine Rolle für alles. Soll jemand nur
+*seinen* Wettbewerb pflegen dürfen, wird aus zwei Rollen ein Rechtesystem —
+mit Zuordnungstabelle, Prüfung an jeder Stelle und einer Oberfläche dafür. Das
+lohnt erst, wenn mehrere Staffelleitungen nebeneinander arbeiten.
 
 ## Was ein Importlauf leistet
 
@@ -69,6 +36,16 @@ mehrere Personen, und dann muss nachvollziehbar sein, wer wann was geändert
 hat.
 
 ## Erledigt seit den letzten Notizen
+
+**Benutzerkonten mit zwei Rollen.** Verwaltung und Pflege, angelegt im
+Adminbereich, keine Selbstregistrierung. Der Installer legt den ersten Zugang
+an. Jede Änderung trägt den Benutzernamen statt „admin" oder „import" —
+auch ein Import, denn wer die Vorschau abgenommen hat, verantwortet sie.
+
+Der letzte aktive Verwalter lässt sich weder entfernen noch abschalten noch
+herabstufen. Ein abgeschaltetes Konto verliert seine laufende Sitzung beim
+nächsten Seitenaufruf, statt bis zum Abmelden weiterarbeiten zu können.
+Einzelheiten in [benutzer.md](benutzer.md).
 
 **Mannschaftsnamen sind eindeutig.** Ein Name, ein Eintrag — über alle
 Wettbewerbe hinweg. Vorher war ein Name nur zusammen mit Geschlecht und

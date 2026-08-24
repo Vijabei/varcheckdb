@@ -81,7 +81,7 @@ final class Editor
      * @param int[] $matchIds
      * @return int Zahl der tatsaechlich geaenderten Spiele
      */
-    public static function setKickoff(array $matchIds, ?string $date, ?string $time, string $timezone): int
+    public static function setKickoff(array $matchIds, ?string $date, ?string $time, string $timezone, string $actor = 'admin'): int
     {
         $changed = 0;
 
@@ -108,7 +108,7 @@ final class Editor
                 ->setTimezone(new DateTimeZone('UTC'))
                 ->format('Y-m-d H:i:s');
 
-            if (self::update($matchId, ['kickoff_utc' => $utc, 'kickoff_is_confirmed' => 1]) !== []) {
+            if (self::update($matchId, ['kickoff_utc' => $utc, 'kickoff_is_confirmed' => 1], $actor) !== []) {
                 $changed++;
             }
         }
@@ -124,7 +124,7 @@ final class Editor
      *
      * @param int[] $matchIds
      */
-    public static function shift(array $matchIds, int $days, string $timezone): int
+    public static function shift(array $matchIds, int $days, string $timezone, string $actor = 'admin'): int
     {
         if ($days === 0) {
             return 0;
@@ -144,7 +144,7 @@ final class Editor
 
             $utc = $local->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
 
-            if (self::update($matchId, ['kickoff_utc' => $utc]) !== []) {
+            if (self::update($matchId, ['kickoff_utc' => $utc], $actor) !== []) {
                 $changed++;
             }
         }
@@ -153,12 +153,12 @@ final class Editor
     }
 
     /** Markiert Termine als verbindlich oder wieder als vorlaeufig. */
-    public static function setConfirmed(array $matchIds, bool $confirmed): int
+    public static function setConfirmed(array $matchIds, bool $confirmed, string $actor = 'admin'): int
     {
         $changed = 0;
 
         foreach ($matchIds as $matchId) {
-            if (self::update($matchId, ['kickoff_is_confirmed' => $confirmed ? 1 : 0]) !== []) {
+            if (self::update($matchId, ['kickoff_is_confirmed' => $confirmed ? 1 : 0], $actor) !== []) {
                 $changed++;
             }
         }

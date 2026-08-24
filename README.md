@@ -49,9 +49,10 @@ nichts, bleibt der bestehende Wert stehen, statt gelöscht zu werden.
 **Ein Spiel gehört zu seinem Spieltag, unabhängig vom Termin.** Ein vom
 Ostersamstag in den Mai verlegtes Spiel behält seinen Spieltag.
 
-Was als Nächstes ansteht, steht in
-[docs/naechste-schritte.md](docs/naechste-schritte.md) — allen voran
-Benutzerkonten, sobald mehr als eine Person pflegt.
+Mehrere Personen können pflegen: es gibt Benutzerkonten mit zwei Rollen, und
+jede Änderung trägt den Namen dessen, der sie gemacht hat. Siehe
+[docs/benutzer.md](docs/benutzer.md). Was noch offen ist, steht in
+[docs/naechste-schritte.md](docs/naechste-schritte.md).
 
 ## Importformate
 

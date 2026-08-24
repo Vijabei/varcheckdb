@@ -24,7 +24,7 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/layout.php';
 
 $config = App::boot();
-Auth::require();
+Auth::requireCapability('import.csv');
 
 $timezone = (string)($config['timezone'] ?? 'Europe/Berlin');
 $errors = [];
@@ -78,6 +78,14 @@ if (($_POST['action'] ?? '') === 'upload' && Auth::tokenValid()) {
 
         if ($detected['adapter'] === null) {
             $errors[] = $detected['reason'];
+        } elseif (!$detected['adapter'] instanceof CsvAdapter && !Auth::can('import.full')) {
+            // Die Pflege darf ihre eigene Tabelle zurueckspielen, aber keine
+            // fremden Dateien einspielen.
+            $errors[] = sprintf(
+                'Deine Rolle darf nur CSV-Dateien hochladen. Erkannt wurde: %s. '
+                . 'Vollständige Importe macht die Verwaltung.',
+                $detected['name']
+            );
         } else {
             try {
                 $parsed = $detected['adapter']->parse($content);
@@ -175,7 +183,7 @@ if (($_POST['action'] ?? '') === 'apply' && Auth::tokenValid() && $batch !== nul
     }
 
     try {
-        $result = (new Applier($csId, (int)$source['id'], $timezone))
+        $result = (new Applier($csId, (int)$source['id'], $timezone, Auth::username()))
             ->apply($diff['rows'], $matcher, $decisions, (string)$batch['filename']);
 
         Batch::markApplied($batchId);
@@ -286,9 +294,15 @@ admin_nav('import.php', $config);
         <label for="datei">Datei</label>
         <input type="file" id="datei" name="datei" accept=".json,.html,.htm,.txt,.csv" required>
         <p class="note">
-          Erkannt werden JSON im Format <code>varcheckdb-import/1</code>, CSV und
-          gespeicherte HTML-Spielpläne. Das Format wird am Inhalt erkannt, nicht an
-          der Dateiendung. Höchstens <?= e((string)ini_get('upload_max_filesize')) ?>.
+          <?php if (Auth::can('import.full')): ?>
+            Erkannt werden JSON im Format <code>varcheckdb-import/1</code>, CSV und
+            gespeicherte HTML-Spielpläne. Das Format wird am Inhalt erkannt, nicht an
+            der Dateiendung.
+          <?php else: ?>
+            Deine Rolle darf CSV-Dateien hochladen &ndash; also den Rücklauf aus dem
+            <a href="matches.php">Spielplan</a>. Vollständige Importe macht die Verwaltung.
+          <?php endif; ?>
+          Höchstens <?= e((string)ini_get('upload_max_filesize')) ?>.
         </p>
 
         <div class="actions"><button type="submit">Einlesen</button></div>

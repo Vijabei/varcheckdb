@@ -107,6 +107,29 @@ CREATE TABLE rounds (
   CONSTRAINT fk_rounds_cs FOREIGN KEY (competition_season_id) REFERENCES competition_seasons (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ---------------------------------------------------------------- Benutzer
+
+-- Zwei Rollen genuegen:
+--
+--   admin   Verwaltung - Benutzer, Wettbewerbe, alle Importe
+--   editor  Pflege     - Spiele aendern, CSV herunterladen und zurueckspielen
+--
+-- Bewusst kein Rechtesystem je Wettbewerb. Sobald jemand nur *seinen*
+-- Wettbewerb pflegen duerfen soll, wird aus zwei Rollen ein Rechtesystem,
+-- und der Aufwand steigt deutlich. Bis das gebraucht wird, bleibt es dabei.
+CREATE TABLE users (
+  id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  username            VARCHAR(64)  NOT NULL,
+  username_normalized VARCHAR(64)  NOT NULL,
+  password_hash       VARCHAR(255) NOT NULL,
+  role                VARCHAR(16)  NOT NULL DEFAULT 'editor',
+  active              TINYINT(1)   NOT NULL DEFAULT 1,
+  created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_login_at       DATETIME         NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_users_username (username_normalized)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ------------------------------------------------------------------ Quellen
 
 CREATE TABLE sources (

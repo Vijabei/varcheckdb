@@ -21,6 +21,8 @@ ini_set('display_errors', '1');
 
 require_once __DIR__ . '/lib/setup/Requirements.php';
 require_once __DIR__ . '/lib/setup/Installer.php';
+require_once __DIR__ . '/lib/db.php';
+require_once __DIR__ . '/lib/users.php';
 
 session_start();
 
@@ -196,6 +198,7 @@ if ($step === 4 && $_SERVER['REQUEST_METHOD'] === 'POST' && $errors === []) {
     $baseUrl     = rtrim(post('base_url'), '/');
     $timezone    = post('timezone', 'Europe/Berlin');
     $attribution = post('attribution');
+    $adminUser   = trim((string)($_POST['admin_username'] ?? ''));
     $adminPass   = (string)($_POST['admin_password'] ?? '');
     $adminRepeat = (string)($_POST['admin_password_repeat'] ?? '');
 
@@ -205,8 +208,12 @@ if ($step === 4 && $_SERVER['REQUEST_METHOD'] === 'POST' && $errors === []) {
     if (!in_array($timezone, timezone_identifiers_list(), true)) {
         $errors[] = 'Die Zeitzone ist unbekannt.';
     }
-    if (mb_strlen($adminPass) < 10) {
-        $errors[] = 'Das Adminpasswort muss mindestens 10 Zeichen haben.';
+    if (preg_match(Users::USERNAME_PATTERN, $adminUser) !== 1) {
+        $errors[] = 'Der Benutzername darf Buchstaben, Ziffern, Punkt, Bindestrich und '
+            . 'Unterstrich enthalten und muss 2 bis 32 Zeichen lang sein.';
+    }
+    if (mb_strlen($adminPass) < Users::MIN_PASSWORD_LENGTH) {
+        $errors[] = sprintf('Das Passwort muss mindestens %d Zeichen haben.', Users::MIN_PASSWORD_LENGTH);
     }
     if ($adminPass !== $adminRepeat) {
         $errors[] = 'Die beiden Passwoerter stimmen nicht ueberein.';
@@ -249,6 +256,17 @@ if ($step === 4 && $_SERVER['REQUEST_METHOD'] === 'POST' && $errors === []) {
                     $errors[] = 'Die Grunddaten liessen sich nicht einspielen. ' . $seed['message'];
                 } else {
                     $notices[] = sprintf('Grunddaten eingetragen (%d Anweisungen).', $seed['executed']);
+
+                    // Der erste Zugang wird als Benutzer angelegt, nicht nur
+                    // als Passwort in der Konfiguration.
+                    Db::set($pdo);
+                    Users::create([
+                        'username' => $adminUser,
+                        'password' => $adminPass,
+                        'role'     => Users::ROLE_ADMIN,
+                        'active'   => 1,
+                    ], 'installer');
+                    $notices[] = sprintf('Benutzer "%s" mit der Rolle Verwaltung angelegt.', $adminUser);
 
                     $written = Installer::writeConfig(CONFIG_FILE, [
                         'created_at'          => date('d.m.Y H:i'),
@@ -579,7 +597,14 @@ code { background: #eef0f2; padding: .1rem .3rem; border-radius: .2rem; font-siz
            value="<?= e(stored('attribution', 'Daten gepflegt von vijabei.net')) ?>">
     <p class="note">Wird in den API-Antworten mitgeliefert.</p>
 
-    <h2>Adminzugang</h2>
+    <h2>Erster Zugang</h2>
+    <label for="admin_username">Benutzername</label>
+    <input type="text" id="admin_username" name="admin_username"
+           value="<?= e(stored('admin_username', 'admin')) ?>" autocomplete="username" required>
+    <p class="note">Dieser Zugang bekommt die Rolle Verwaltung und darf Benutzer,
+       Wettbewerbe und Importe verwalten. Weitere Zugänge legst du später im
+       Adminbereich an.</p>
+
     <label for="admin_password">Passwort</label>
     <input type="password" id="admin_password" name="admin_password" autocomplete="new-password" required>
     <p class="note">Mindestens 10 Zeichen. Es wird nur als Hash gespeichert, nie im Klartext.</p>

@@ -14,6 +14,12 @@ final class Applier
         private readonly int $competitionSeasonId,
         private readonly int $sourceId,
         private readonly string $timezone,
+        /**
+         * Wer den Import bestaetigt hat. Die Quelle steht ohnehin in
+         * source_id; im Protokoll gehoert an diese Stelle der Mensch, der
+         * die Vorschau abgenommen hat.
+         */
+        private readonly string $actor = 'import',
     ) {
     }
 
@@ -266,7 +272,7 @@ final class Applier
             'field'       => $field,
             'old_value'   => $text($from),
             'new_value'   => $text($to),
-            'actor'       => 'import',
+            'actor'       => $this->actor,
             'source_id'   => $this->sourceId,
             'batch_id'    => $batchId,
             'created_at'  => gmdate('Y-m-d H:i:s'),

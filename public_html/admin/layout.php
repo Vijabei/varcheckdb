@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 /** Gemeinsamer Rahmen aller Adminseiten. */
 
+require_once __DIR__ . '/../lib/users.php';
+
 function admin_head(string $title, array $config): void
 {
     $name = htmlspecialchars((string)($config['site_name'] ?? 'Spieldaten'), ENT_QUOTES, 'UTF-8');
@@ -56,12 +58,22 @@ a { color:var(--accent); }
 
 function admin_nav(string $current, array $config): void
 {
-    $items = [
-        'index.php'       => 'Übersicht',
-        'matches.php'     => 'Spielplan',
-        'import.php'      => 'Import',
-        'competitions.php' => 'Wettbewerbe',
-    ];
+    // Nur zeigen, was die Rolle auch darf - ein Verweis, der zu
+    // "nicht erlaubt" fuehrt, ist eine Zumutung.
+    $items = ['index.php' => 'Übersicht'];
+
+    if (Auth::can('matches.edit')) {
+        $items['matches.php'] = 'Spielplan';
+    }
+    if (Auth::can('import.csv')) {
+        $items['import.php'] = 'Import';
+    }
+    if (Auth::can('competitions.manage')) {
+        $items['competitions.php'] = 'Wettbewerbe';
+    }
+    if (Auth::can('users.manage')) {
+        $items['users.php'] = 'Benutzer';
+    }
     ?>
 <header><div class="inner">
   <span class="name"><?= htmlspecialchars((string)($config['site_name'] ?? 'Spieldaten'), ENT_QUOTES, 'UTF-8') ?></span>
@@ -69,7 +81,9 @@ function admin_nav(string $current, array $config): void
     <a href="<?= $file ?>" class="<?= $file === $current ? 'on' : '' ?>"><?= $label ?></a>
   <?php endforeach; ?>
   <a href="../">Öffentliche Seite</a>
-  <a href="index.php?logout=1">Abmelden</a>
+  <a href="index.php?logout=1" title="<?= htmlspecialchars(Auth::username() . ' — ' . (Users::ROLES[Auth::role()] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+    <?= htmlspecialchars(Auth::username(), ENT_QUOTES, 'UTF-8') ?> abmelden
+  </a>
 </div></header>
 <main>
 <?php

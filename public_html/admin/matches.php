@@ -13,7 +13,7 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/layout.php';
 
 $config = App::boot();
-Auth::require();
+Auth::requireCapability('matches.edit');
 
 $timezone = (string)($config['timezone'] ?? 'Europe/Berlin');
 $errors = [];
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::tokenValid()) {
                     break;
                 }
 
-                $n = Editor::setKickoff($selected, $date ?: null, $time ?: null, $timezone);
+                $n = Editor::setKickoff($selected, $date ?: null, $time ?: null, $timezone, Auth::username());
                 $notices[] = sprintf('%d von %d Spielen umgesetzt.', $n, count($selected));
                 break;
 
@@ -89,17 +89,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::tokenValid()) {
                     $errors[] = 'Bitte eine Zahl von Tagen angeben.';
                     break;
                 }
-                $n = Editor::shift($selected, $days, $timezone);
+                $n = Editor::shift($selected, $days, $timezone, Auth::username());
                 $notices[] = sprintf('%d Spiele um %+d Tage verschoben.', $n, $days);
                 break;
 
             case 'bestaetigen':
-                $n = Editor::setConfirmed($selected, true);
+                $n = Editor::setConfirmed($selected, true, Auth::username());
                 $notices[] = sprintf('%d Termine als verbindlich markiert.', $n);
                 break;
 
             case 'vorlaeufig':
-                $n = Editor::setConfirmed($selected, false);
+                $n = Editor::setConfirmed($selected, false, Auth::username());
                 $notices[] = sprintf('%d Termine als vorlaeufig markiert.', $n);
                 break;
 
@@ -117,10 +117,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::tokenValid()) {
                     'note'          => ($_POST['note'] ?? '') === '' ? null : (string)$_POST['note'],
                 ];
 
-                $changed = Editor::update($matchId, $values);
+                $changed = Editor::update($matchId, $values, Auth::username());
 
                 if ($date !== '' && $time !== '') {
-                    $changed = array_merge($changed, Editor::setKickoff([$matchId], $date, $time, $timezone) > 0 ? ['kickoff_utc'] : []);
+                    $changed = array_merge($changed, Editor::setKickoff([$matchId], $date, $time, $timezone, Auth::username()) > 0 ? ['kickoff_utc'] : []);
                 }
 
                 $notices[] = $changed === []

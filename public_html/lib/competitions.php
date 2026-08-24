@@ -114,7 +114,7 @@ final class Competitions
      *
      * @return int die id des competition_seasons-Eintrags
      */
-    public static function create(array $input): int
+    public static function create(array $input, string $actor = 'admin'): int
     {
         $pdo = Db::pdo();
         $pdo->beginTransaction();
@@ -162,7 +162,7 @@ final class Competitions
                 'created_at' => gmdate('Y-m-d H:i:s'),
             ]);
 
-            self::log('competition_season', $competitionSeasonId, 'created', null, trim((string)$input['shortcut']));
+            self::log('competition_season', $competitionSeasonId, 'created', null, trim((string)$input['shortcut']), $actor);
 
             $pdo->commit();
 
@@ -178,7 +178,7 @@ final class Competitions
      *
      * @return array<string, int> was tatsaechlich entfernt wurde
      */
-    public static function remove(int $competitionSeasonId): array
+    public static function remove(int $competitionSeasonId, string $actor = 'admin'): array
     {
         $entry = Db::one(
             'SELECT cs.*, c.id AS competition_id, c.slug, s.id AS season_id
@@ -236,7 +236,8 @@ final class Competitions
                 $competitionSeasonId,
                 'removed',
                 sprintf('%s (%d Spiele)', $entry['shortcut'], $entfernt['matches']),
-                null
+                null,
+                $actor
             );
 
             $pdo->commit();
@@ -261,7 +262,7 @@ final class Competitions
     }
 
     /** Entfernt eine Mannschaft samt ihrer Namensvarianten. */
-    public static function removeTeam(int $teamId): bool
+    public static function removeTeam(int $teamId, string $actor = 'admin'): bool
     {
         $inUse = (int)Db::value(
             'SELECT COUNT(*) FROM matches WHERE home_team_id = ? OR away_team_id = ?',
@@ -276,7 +277,7 @@ final class Competitions
 
         // team_aliases haengt mit ON DELETE CASCADE an teams.
         Db::run('DELETE FROM teams WHERE id = ?', [$teamId]);
-        self::log('team', $teamId, 'removed', $name, null);
+        self::log('team', $teamId, 'removed', $name, null, $actor);
 
         return true;
     }
@@ -292,7 +293,8 @@ final class Competitions
         int $entityId,
         string $field,
         ?string $from,
-        ?string $to
+        ?string $to,
+        string $actor = 'admin'
     ): void {
         Db::insert('change_log', [
             'entity_type' => $entityType,
@@ -300,7 +302,7 @@ final class Competitions
             'field'       => $field,
             'old_value'   => $from,
             'new_value'   => $to,
-            'actor'       => 'admin',
+            'actor'       => $actor,
             'source_id'   => Db::value('SELECT id FROM sources WHERE slug = ?', ['manual']),
             'created_at'  => gmdate('Y-m-d H:i:s'),
         ]);

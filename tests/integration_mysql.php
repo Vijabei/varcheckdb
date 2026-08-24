@@ -84,7 +84,7 @@ if (!$schema['ok']) {
     exit(1);
 }
 
-T::same(Installer::TABLES, Installer::existingTables($pdo), 'alle 15 Tabellen sind da');
+T::same(Installer::TABLES, Installer::existingTables($pdo), 'alle Tabellen sind da');
 
 // Die Fremdschluessel muessen wirklich greifen, nicht nur deklariert sein.
 $constraints = (int)$pdo->query(

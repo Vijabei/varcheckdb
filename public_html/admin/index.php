@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../lib/app.php';
 require_once __DIR__ . '/../lib/repo.php';
+require_once __DIR__ . '/../lib/users.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/layout.php';
 
@@ -22,8 +23,15 @@ if (isset($_GET['logout'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!Auth::tokenValid()) {
         $errors[] = 'Die Sitzung ist abgelaufen. Bitte erneut anmelden.';
-    } elseif (!Auth::check((string)($_POST['password'] ?? ''), $config)) {
-        $errors[] = 'Das Passwort stimmt nicht.';
+    } elseif (!Auth::login(
+        (string)($_POST['username'] ?? ''),
+        (string)($_POST['password'] ?? ''),
+        $config
+    )) {
+        // Keine Auskunft darueber, ob der Name oder das Passwort falsch war.
+        $errors[] = Users::hasActiveAdmin()
+            ? 'Benutzername oder Passwort stimmt nicht.'
+            : 'Das Passwort stimmt nicht.';
         // Wiederholtes Raten ausbremsen, ohne den Server zu blockieren.
         usleep(400000);
     } else {
@@ -52,14 +60,33 @@ if (!Auth::isLoggedIn()) {
           <div class="msg good">Du bist abgemeldet.</div>
         <?php endif; ?>
 
+        <?php if (isset($_GET['gesperrt'])): ?>
+          <div class="msg bad">Dein Zugang wurde abgeschaltet.</div>
+        <?php endif; ?>
+
         <form method="post">
           <input type="hidden" name="token" value="<?= e(Auth::token()) ?>">
+
+          <?php if (Users::hasActiveAdmin()): ?>
+            <label for="username">Benutzername</label>
+            <input type="text" id="username" name="username" autocomplete="username" autofocus required>
+          <?php endif; ?>
+
           <label for="password">Passwort</label>
-          <input type="password" id="password" name="password" autocomplete="current-password" autofocus required>
+          <input type="password" id="password" name="password" autocomplete="current-password"
+                 <?= Users::hasActiveAdmin() ? '' : 'autofocus' ?> required>
+
           <div class="actions"><button type="submit">Anmelden</button></div>
         </form>
       </div>
-      <p class="note">Das Passwort wurde bei der Installation vergeben.</p>
+
+      <?php if (!Users::hasActiveAdmin()): ?>
+        <p class="note">Es ist noch kein Benutzer angelegt. Bis dahin gilt das Passwort
+           aus <code>config.php</code>; danach meldest du dich mit Benutzername an.</p>
+      <?php else: ?>
+        <p class="note">Passwort vergessen? Jemand mit der Rolle Verwaltung kann es
+           zurücksetzen.</p>
+      <?php endif; ?>
     </main>
     <?php
     admin_foot();
@@ -76,6 +103,15 @@ admin_nav('index.php', $config);
 ?>
 
 <h1>Übersicht</h1>
+
+<?php if (Auth::isBootstrap()): ?>
+  <div class="msg bad">
+    <strong>Noch kein Benutzer angelegt.</strong> Du bist über das Passwort aus
+    <code>config.php</code> angemeldet. Lege einen Zugang mit der Rolle Verwaltung an
+    &ndash; danach gilt dieses Passwort nicht mehr.
+    <div class="actions"><a href="users.php"><button type="button">Benutzer anlegen</button></a></div>
+  </div>
+<?php endif; ?>
 
 <div class="card">
   <div class="stats">

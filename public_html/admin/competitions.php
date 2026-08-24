@@ -10,7 +10,7 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/layout.php';
 
 $config = App::boot();
-Auth::require();
+Auth::requireCapability('competitions.manage');
 
 $errors = [];
 $notices = [];
@@ -41,7 +41,7 @@ if (($_POST['action'] ?? '') === 'create' && Auth::tokenValid()) {
 
     if ($errors === []) {
         try {
-            Competitions::create($eingabe);
+            Competitions::create($eingabe, Auth::username());
             $notices[] = sprintf(
                 'Wettbewerb "%s" angelegt. Als Nächstes eine Importdatei hochladen.',
                 $eingabe['name']
@@ -72,7 +72,7 @@ if (($_POST['action'] ?? '') === 'remove' && Auth::tokenValid()) {
         );
     } else {
         try {
-            $weg = Competitions::remove($id);
+            $weg = Competitions::remove($id, Auth::username());
             $notices[] = sprintf(
                 '"%s" entfernt: %d Spiele, %d Spieltage, %d Importvorgänge.',
                 $ziel['name'],
@@ -99,7 +99,7 @@ if (($_POST['action'] ?? '') === 'remove' && Auth::tokenValid()) {
 if (($_POST['action'] ?? '') === 'remove_team' && Auth::tokenValid()) {
     $entfernt = 0;
     foreach ((array)($_POST['team'] ?? []) as $teamId) {
-        if (Competitions::removeTeam((int)$teamId)) {
+        if (Competitions::removeTeam((int)$teamId, Auth::username())) {
             $entfernt++;
         }
     }

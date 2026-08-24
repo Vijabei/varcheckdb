@@ -89,6 +89,18 @@ CREATE TABLE rounds (
   CONSTRAINT fk_rounds_cs FOREIGN KEY (competition_season_id) REFERENCES competition_seasons (id)
 );
 
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL,
+  username_normalized TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'editor',
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_login_at TEXT NULL,
+  UNIQUE (username_normalized)
+);
+
 CREATE TABLE sources (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   slug TEXT NOT NULL,
