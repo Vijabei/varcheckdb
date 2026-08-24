@@ -1,3 +1,6 @@
+-- @erledigt-wenn: SELECT COUNT(*) FROM information_schema.TABLES
+--                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'
+
 -- Benutzerkonten statt eines gemeinsamen Passworts.
 --
 -- Bis hierher gab es ein einziges Passwort in config.php und keine Benutzer.

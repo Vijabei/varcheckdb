@@ -44,7 +44,7 @@ T::group('Installer - SQL zerlegen');
 $statements = Installer::statements((string)file_get_contents(ROOT . '/db/schema.mysql.sql'));
 $creates = array_filter($statements, fn(string $s): bool => str_starts_with($s, 'CREATE TABLE'));
 
-T::same(19, count($creates), 'alle 19 CREATE TABLE werden einzeln erkannt');
+T::same(20, count($creates), 'alle 20 CREATE TABLE werden einzeln erkannt');
 T::same(0, count(array_filter($statements, fn(string $s): bool => str_contains($s, '--'))),
     'Kommentarzeilen sind entfernt');
 T::same(0, count(array_filter($statements, fn(string $s): bool => trim($s) === '')),
@@ -181,7 +181,7 @@ foreach ($blocks as [, $table, $body]) {
     $created[] = $table;
 }
 
-T::same(19, count($blocks), 'das Schema enthaelt 19 Tabellen');
+T::same(20, count($blocks), 'das Schema enthaelt 20 Tabellen');
 T::same([], $forward, 'keine Tabelle verweist auf eine spaeter angelegte');
 T::ok(!str_contains($schema, 'FOREIGN_KEY_CHECKS'),
     'die Fremdschluesselpruefung muss nicht abgeschaltet werden');
@@ -366,3 +366,37 @@ foreach (Requirements::all() as $entry) {
 T::ok($own !== null, 'der eigene Pfad steht in der Liste');
 T::same(realpath(ROOT . '/public_html'), $own['actual'], 'und ist der echte Pfad im Dateisystem');
 T::ok(str_contains((string)$own['hint'], 'FTP'), 'mit dem Hinweis auf abweichende FTP-Pfade');
+
+T::group('Migrationen - jede Datei ist maschinell pruefbar');
+
+// tools/migrate.php entscheidet anhand der Steuerzeilen, ob eine Migration
+// noch noetig ist. Fehlt sie, liefe die Migration blind - und eine Migration
+// auf einer unpassenden Datenbank richtet mehr Schaden an als sie behebt.
+$dateien = glob(ROOT . '/db/migrations/*.sql') ?: [];
+T::ok($dateien !== [], 'es gibt Migrationsdateien');
+
+foreach ($dateien as $datei) {
+    $inhalt = (string)file_get_contents($datei);
+    $name = basename($datei);
+
+    T::ok(str_contains($inhalt, '@erledigt-wenn:'),
+        sprintf('%s hat eine Erkennung', $name));
+
+    // Die Abfrage muss eine Zahl liefern, keine Zeilenmenge: der Aufrufer
+    // vergleicht sie gegen 0.
+    T::ok(preg_match('/@erledigt-wenn:\s*SELECT\s+COUNT/i', $inhalt) === 1,
+        sprintf('%s zaehlt, statt Zeilen zu liefern', $name));
+
+    // Die Anweisungen muessen sich zerlegen lassen.
+    $anweisungen = Installer::statements($inhalt);
+    T::ok($anweisungen !== [], sprintf('%s enthaelt ausfuehrbare Anweisungen', $name));
+}
+
+T::group('Migrationen - Namen sind sortierbar');
+
+// Die Reihenfolge ergibt sich aus dem Dateinamen; ein Datum am Anfang haelt
+// sie stabil.
+foreach ($dateien as $datei) {
+    T::ok(preg_match('/^\d{4}-\d{2}-\d{2}-/', basename($datei)) === 1,
+        sprintf('%s beginnt mit einem Datum', basename($datei)));
+}

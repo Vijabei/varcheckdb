@@ -107,6 +107,19 @@ CREATE TABLE rounds (
   CONSTRAINT fk_rounds_cs FOREIGN KEY (competition_season_id) REFERENCES competition_seasons (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Welche Migrationen schon gelaufen sind.
+--
+-- Bei einer frischen Installation bringt das Schema alles mit; tools/migrate.php
+-- erkennt das und traegt die Migrationen als erledigt ein, ohne sie auszufuehren.
+CREATE TABLE schema_migrations (
+  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name       VARCHAR(191) NOT NULL,
+  applied_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  detected   TINYINT(1)   NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_migration (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------- Benutzer
 
 -- Zwei globale Rollen:

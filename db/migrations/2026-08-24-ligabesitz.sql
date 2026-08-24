@@ -1,3 +1,6 @@
+-- @erledigt-wenn: SELECT COUNT(*) FROM information_schema.TABLES
+--                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'competition_members'
+
 -- Besitz je Liga statt globaler Rollen.
 --
 -- Bisher: zwei globale Rollen (Verwaltung, Pflege), die ueberall galten.

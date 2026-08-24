@@ -91,12 +91,9 @@ Der Absender muss auf der eigenen Domain liegen, sonst scheitert die
 SPF-Prüfung beim Empfänger. Ohne Angabe wird `noreply@<domain aus base_url>`
 verwendet.
 
-Für vijabei.net ist SPF gesetzt (`v=spf1 +a +mx ?all`), DMARC fehlt. Ein
-DMARC-Eintrag verbessert die Zustellung spürbar:
-
-```text
-_dmarc.vijabei.net.  TXT  "v=DMARC1; p=none; rua=mailto:postmaster@vijabei.net"
-```
+Für vijabei.net ist SPF gesetzt, DMARC fehlt. Wie man SPF, DKIM und DMARC
+einrichtet und schrittweise schärft, steht in
+[mail-zustellung.md](mail-zustellung.md).
 
 ## An einer fremden Liga mitarbeiten
 

@@ -1,3 +1,17 @@
+-- @erledigt-wenn: SELECT COUNT(*) = 0 FROM information_schema.COLUMNS
+--                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'teams'
+--                    AND COLUMN_NAME = 'gender'
+-- @pruefe: SELECT name_normalized AS doppelter_name, COUNT(*) AS eintraege,
+--                 GROUP_CONCAT(id) AS ids, GROUP_CONCAT(name) AS namen
+--            FROM teams GROUP BY name_normalized HAVING COUNT(*) > 1
+-- @pruefe-hinweis: Diese Namen kommen mehrfach vor. Vor dem Umbau muss je Gruppe
+--                  entschieden werden, welcher Eintrag bleibt. Die Spiele der
+--                  uebrigen umhaengen, dann die Doppel loeschen:
+--                    UPDATE matches      SET home_team_id = BEHALTEN WHERE home_team_id = DOPPELT;
+--                    UPDATE matches      SET away_team_id = BEHALTEN WHERE away_team_id = DOPPELT;
+--                    UPDATE team_aliases SET team_id      = BEHALTEN WHERE team_id      = DOPPELT;
+--                    DELETE FROM teams WHERE id = DOPPELT;
+
 -- Ein Mannschaftsname kommt genau einmal vor.
 --
 -- Bis hierher war ein Name nur zusammen mit Geschlecht und Altersklasse

@@ -102,6 +102,42 @@ gescheitert ist. Danach wird `config.php` geschrieben und sofort gegengelesen.
 - `config.php` wird mit Rechten 0640 angelegt.
 - Nach der Installation muss `install.php` verschwinden.
 
+## Bestehende Installation aktualisieren
+
+Nach einem Update der Dateien bringt ein Werkzeug die Datenbank nach:
+
+```bash
+php tools/migrate.php --status    zeigt den Stand, ändert nichts
+php tools/migrate.php --probe     zeigt, was laufen würde
+php tools/migrate.php             führt aus
+```
+
+Es fragt zuerst ab, was schon da ist, und führt nur aus, was fehlt. Eine
+Migration, die auf eine unpassende Datenbank trifft, richtet mehr Schaden an
+als sie behebt.
+
+Erkennt es, dass eine Migration bereits vorliegt — etwa bei einer frischen
+Installation, die das Schema schon vollständig mitbringt — vermerkt es sie
+als erledigt, ohne sie auszuführen.
+
+Steht etwas im Weg, bricht es ab, **bevor** es etwas ändert, und sagt was zu
+tun ist. Beispiel: doppelte Mannschaftsnamen müssen zusammengeführt werden,
+ehe der Name eindeutig werden kann — das Werkzeug zeigt die betroffenen
+Zeilen und die nötigen Anweisungen.
+
+Die Zugangsdaten kommen aus `public_html/config.php`. Ohne Datei geht es auch
+über Umgebungsvariablen:
+
+```bash
+MYSQL_HOST=localhost MYSQL_DB=... MYSQL_USER=... MYSQL_PASSWORD=... php tools/migrate.php
+```
+
+## Mailversand
+
+Für Bestätigung und Passwort-Rücksetzung. Welche DNS-Einträge die Zustellung
+entscheiden und wie man sie setzt, steht in
+[mail-zustellung.md](mail-zustellung.md).
+
 ## Von Hand statt mit dem Installer
 
 ```bash

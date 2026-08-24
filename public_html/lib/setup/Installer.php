@@ -12,7 +12,8 @@ final class Installer
     /** Diese Tabellen muessen nach dem Einspielen vorhanden sein. */
     public const TABLES = [
         'competitions', 'seasons', 'competition_seasons', 'clubs', 'teams',
-        'team_aliases', 'venues', 'rounds', 'users', 'user_tokens', 'competition_members',
+        'team_aliases', 'venues', 'rounds', 'schema_migrations', 'users', 'user_tokens',
+        'competition_members',
         'signup_attempts', 'sources', 'matches', 'match_field_sources',
         'source_mappings', 'import_batches', 'import_rows', 'change_log',
     ];

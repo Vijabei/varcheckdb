@@ -89,6 +89,14 @@ CREATE TABLE rounds (
   CONSTRAINT fk_rounds_cs FOREIGN KEY (competition_season_id) REFERENCES competition_seasons (id)
 );
 
+CREATE TABLE schema_migrations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  detected INTEGER NOT NULL DEFAULT 0,
+  UNIQUE (name)
+);
+
 CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL,

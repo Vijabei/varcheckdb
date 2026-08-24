@@ -1,3 +1,7 @@
+-- @erledigt-wenn: SELECT COUNT(*) FROM information_schema.COLUMNS
+--                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'
+--                    AND COLUMN_NAME = 'email'
+
 -- Mailadresse und Passwort-Ruecksetzung.
 --
 -- Ohne Mailadresse kann ein vergessenes Passwort nur der Webadmin
