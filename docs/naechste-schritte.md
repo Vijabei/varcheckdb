@@ -8,6 +8,11 @@ warum es fehlt.
 **Der nächste größere Baustein.** Zurzeit gibt es ein einziges Passwort und
 keine Benutzer. Das trägt, solange eine Person pflegt.
 
+Die Voraussetzung dafür steht inzwischen: Wettbewerbe lassen sich im
+Adminbereich anlegen und entfernen. Vorher hätten Rollen nichts gehabt, worauf
+sie sich beziehen — „darf Wettbewerbe anlegen" ist keine sinnvolle Berechtigung,
+wenn das nur über `seed.sql` geht.
+
 Sobald zwei Leute pflegen, fehlt die Antwort auf „wer war das?". Die Datenbank
 ist darauf vorbereitet: `change_log.actor` ist eine Textspalte und steht
 heute auf `admin` oder `import`. Ein echter Benutzername passt dort ohne
@@ -34,6 +39,10 @@ Zu klären, bevor gebaut wird: Soll jemand nur *seinen* Wettbewerb pflegen
 dürfen? Das wäre der Punkt, an dem aus zwei Rollen ein Rechtesystem wird —
 und der Aufwand deutlich steigt.
 
+Das Entfernen eines Wettbewerbs sollte in jedem Fall der Verwaltung
+vorbehalten bleiben. Es ist der einzige Weg in der Anwendung, auf dem Daten
+unwiederbringlich verschwinden.
+
 ## Was ein Importlauf leistet
 
 Zur Einordnung, was die Konten später verwalten. Gemessen an der
@@ -58,6 +67,21 @@ Pflege: nachgereichte Ansetzungen, Verlegungen, Ergebnisse.
 Genau diese Pflege ist der Grund für die Konten. Sie verteilt sich auf
 mehrere Personen, und dann muss nachvollziehbar sein, wer wann was geändert
 hat.
+
+## Erledigt seit den letzten Notizen
+
+**Wettbewerbe verwalten.** Anlegen und Entfernen im Adminbereich. Das
+Entfernen zeigt vorher, was daran hängt — Spiele, Spieltage,
+Herkunftsvermerke, Importvorgänge — und weist gesondert aus, wie viele davon
+von Hand bestätigte Angaben sind: die stehen nach dem Entfernen nirgends mehr,
+und ein erneuter Import bringt sie nicht zurück. Bestätigt wird durch Eintippen
+des Kürzels, nicht durch einen Knopf.
+
+Mannschaften und das Änderungsprotokoll überleben das Entfernen. Mannschaften,
+weil dieselbe Elf nächste Saison wieder spielt und ihre Namenszuordnungen dann
+wieder greifen. Das Protokoll, weil es die Aufzeichnung dessen ist, was
+geschehen ist — es zu löschen hieße, die Spur zu verwischen. Das Entfernen
+selbst wird darin vermerkt.
 
 ## Kleinere offene Punkte
 

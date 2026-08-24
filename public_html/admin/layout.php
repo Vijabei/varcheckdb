@@ -57,9 +57,10 @@ a { color:var(--accent); }
 function admin_nav(string $current, array $config): void
 {
     $items = [
-        'index.php'   => 'Übersicht',
-        'matches.php' => 'Spielplan',
-        'import.php'  => 'Import',
+        'index.php'       => 'Übersicht',
+        'matches.php'     => 'Spielplan',
+        'import.php'      => 'Import',
+        'competitions.php' => 'Wettbewerbe',
     ];
     ?>
 <header><div class="inner">
