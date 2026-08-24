@@ -8,7 +8,7 @@ nachvollziehbar, wie sie entstanden sind.
 
 Die Quelldateien selbst liegen unter samples/ und sind bewusst nicht im
 Repository (gross, fremdes Urheberrecht). Wie man sie beschafft, steht in
-docs/datenquellen.md.
+docs/import.md.
 
     python3 tools/make_fixtures.py           # Fixtures neu erzeugen
     python3 tools/make_fixtures.py --check   # nur pruefen, nichts schreiben
@@ -145,7 +145,7 @@ def main() -> int:
     if missing:
         for path in missing:
             print(f'Quelldatei fehlt: {path.relative_to(ROOT)}', file=sys.stderr)
-        print('\nSiehe docs/datenquellen.md, wie die Dateien beschafft werden.', file=sys.stderr)
+        print('\nDie Quelldateien gehoeren nach samples/.', file=sys.stderr)
         return 2
 
     kicker = build_kicker(rounds)

@@ -62,8 +62,8 @@ Original. Bei einem gespielten Spiel stehen immer beide Eintraege in fester
 Reihenfolge: erst `HalfTime`, dann `After90Minutes`.
 
 Ist der Halbzeitstand unbekannt, traegt der `HalfTime`-Eintrag `null` als
-Punktzahl. kicker.de liefert den Stand unvollstaendig - fuer die Frauen-
-Regionalliga West am 1. Spieltag bei einem von acht Spielen.
+Punktzahl. Quellen liefern ihn oft unvollstaendig; ein Endergebnis ohne
+Halbzeitstand ist der Normalfall, nicht die Ausnahme.
 
 Die beiden verworfenen Alternativen und warum:
 

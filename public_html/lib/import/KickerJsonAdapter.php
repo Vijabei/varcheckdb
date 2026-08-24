@@ -2,11 +2,11 @@
 declare(strict_types=1);
 
 /**
- * Liest die Datei, die tools/fetch_kicker.py lokal erzeugt.
+ * Liest eine Importdatei im Format varcheckdb-import/1.
  *
- * Der Abruf bei kicker.de findet bewusst nicht auf dem Webserver statt,
- * sondern auf dem Rechner des Admins. Hier kommt nur noch die fertige
- * Datei an.
+ * Das Format ist in docs/import.md beschrieben: ein Dokument mit Wettbewerb,
+ * Saison, Zeitzone und einer Liste von Spielen. Wie eine solche Datei
+ * entsteht, geht diese Anwendung nichts an - sie nimmt sie entgegen.
  */
 final class KickerJsonAdapter implements Adapter
 {
@@ -29,8 +29,8 @@ final class KickerJsonAdapter implements Adapter
 
         if (!is_array($data) || !in_array($data['format'] ?? null, $bekannt, true)) {
             throw new ImportException(
-                'Unerwartetes Format. Erwartet wird eine Datei aus tools/fetch_kicker.py '
-                . '(Feld "format": "varcheckdb-import/1").'
+                'Unerwartetes Format. Erwartet wird ein JSON-Dokument mit dem Feld '
+                . '"format": "varcheckdb-import/1". Aufbau siehe docs/import.md.'
             );
         }
 

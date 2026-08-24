@@ -5,16 +5,22 @@ public_html/config.php
 # Die schlanken Testfixtures unter tests/fixtures/ sind bewusst NICHT ignoriert.
 samples/
 
-# Importdateien, die tools/fetch_kicker.py im Hauptordner ablegt
+# Erzeugte Importdateien im Hauptordner
 /kicker*.json
 /worldfootball*.html
 
 # Ausrangierte Experimente
 bak/
 
-# Rohprotokoll der Vorarbeit. Kein Projektdokument - die Erkenntnisse daraus
-# stehen in docs/datenquellen.md. Zum Aufnehmen diese Zeile entfernen.
+# Rohprotokoll der Vorarbeit. Kein Projektdokument.
 docs/bisheriger_verlauf.md
+
+# Betriebswissen zu einzelnen Portalen: welche Endpunkte, welche Eigenheiten,
+# und das Werkzeug, das sie abruft. Gehoert dem Betreiber, nicht der
+# Veroeffentlichung. Diese Anwendung nimmt Dateien entgegen; woher sie stammen,
+# ist keine Eigenschaft der Anwendung. Die Formate stehen in docs/import.md.
+docs/datenquellen.md
+tools/fetch_*.py
 
 # Lokale Datenbanken
 *.sqlite

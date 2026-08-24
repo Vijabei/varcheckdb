@@ -612,11 +612,10 @@ code { background: #eef0f2; padding: .1rem .3rem; border-radius: .2rem; font-siz
   </form>
 
   <h2>Wie es weitergeht</h2>
-  <p>Im Adminbereich laedst du die Importdatei hoch. Sie wird auf deinem eigenen
-     Rechner erzeugt:</p>
-  <p><code>python3 tools/fetch_kicker.py 4530 2026-27 -o kicker.json</code></p>
-  <p>Beim ersten Import ordnest du die Mannschaftsnamen einmalig zu. Alles Weitere
-     steht in <code>docs/datenquellen.md</code>.</p>
+  <p>Im Adminbereich laedst du die erste Importdatei hoch &ndash; JSON oder CSV.
+     Beim ersten Import ordnest du die Mannschaftsnamen einmalig zu; danach greift
+     die Zuordnung automatisch.</p>
+  <p>Aufbau der Formate: <code>docs/import.md</code>.</p>
 
 <?php endif; ?>
 

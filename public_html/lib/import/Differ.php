@@ -29,9 +29,8 @@ final class Differ
     ];
 
     // venue fehlt hier bewusst: die Spielstaette braucht eine Aufloesung von
-    // Name auf venues.id, und der Differ schreibt nichts. Solange keine
-    // Quelle sie zuverlaessig liefert - kicker.de tat es fuer eines von
-    // sieben Spielen - waere das Aufwand ohne Ertrag.
+    // Name auf venues.id, und der Differ schreibt nichts. Solange sie in den
+    // Importdateien nur vereinzelt auftaucht, waere das Aufwand ohne Ertrag.
 
     public function __construct(
         private readonly int $competitionSeasonId,

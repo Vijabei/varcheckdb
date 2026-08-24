@@ -24,11 +24,17 @@
 -- Stuende csv darunter, koennte er seine eigenen bestaetigten Werte nie
 -- wieder per Tabelle korrigieren.
 
+-- name ist der im Adminbereich sichtbare Text und beschreibt den Weg, auf
+-- dem Daten hereinkommen - nicht das Portal, aus dem eine Datei stammt. Das
+-- ist Sache des Betreibers und keine Eigenschaft dieser Anwendung.
+--
+-- slug bleibt als interne Kennung stehen; darauf verweisen Adapter und Tests.
+
 INSERT INTO sources (slug, name, url, priority) VALUES
-  ('manual',        'Manuelle Pflege',   NULL,                              10),
-  ('csv',           'CSV-Ruecklauf',     NULL,                              10),
-  ('kicker',        'kicker.de',         'https://www.kicker.de/',          50),
-  ('worldfootball', 'worldfootball.net', 'https://www.worldfootball.net/',  60);
+  ('manual',        'Manuelle Pflege',        NULL, 10),
+  ('csv',           'CSV-Ruecklauf',          NULL, 10),
+  ('kicker',        'JSON-Import',            NULL, 50),
+  ('worldfootball', 'HTML-Spielplan',         NULL, 60);
 
 INSERT INTO seasons (name, start_year) VALUES
   ('2026/27', 2026),
@@ -40,7 +46,7 @@ INSERT INTO competitions (slug, name, gender, age_group, region, level, organize
 
 INSERT INTO competition_seasons (competition_id, season_id, shortcut, name, team_count, source_url)
 SELECT c.id, s.id, 'frlw', 'Frauen-Regionalliga West 2026/2027', 16,
-       'https://www.kicker.de/frauen-regionalliga-west/spieltag/2026-27'
+       NULL
 FROM competitions c, seasons s
 WHERE c.slug = 'frauen-regionalliga-west' AND s.start_year = 2026;
 

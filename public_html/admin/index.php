@@ -90,9 +90,8 @@ admin_nav('index.php', $config);
 <?php if ($stats['matches'] === 0): ?>
   <div class="card">
     <h2 style="margin-top:0">Noch keine Spiele</h2>
-    <p>Die Datenbank ist eingerichtet, aber leer. Die Importdatei wird auf deinem eigenen
-       Rechner erzeugt und hier hochgeladen:</p>
-    <p><code>python3 tools/fetch_kicker.py 4530 2026-27 -o kicker.json</code></p>
+    <p>Die Datenbank ist eingerichtet, aber leer. Importdateien werden auf deinem
+       eigenen Rechner erzeugt und hier hochgeladen &ndash; als JSON oder CSV.</p>
     <div class="actions"><a href="import.php"><button type="button">Zum Import</button></a></div>
   </div>
 <?php endif; ?>

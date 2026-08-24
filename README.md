@@ -10,17 +10,30 @@ Node, kein Build-Schritt.
 
 ## Warum
 
-Die naheliegenden Wege tragen nicht:
+Wer Spieldaten einer Liga führen will, stößt fast überall auf dieselbe Wand:
+**es gibt keinen brauchbaren Weg hinein und keinen wieder hinaus.** Kaum ein
+Portal bietet eine benutzbare Schnittstelle, viele bieten gar keinen Export,
+und ein Import ist meist überhaupt nicht vorgesehen. Wer Daten hat, kann sie
+nicht einspielen; wer sie eingepflegt hat, kommt nicht mehr an sie heran.
 
-- **FUSSBALL.DE** liefert im Widget zwar stabile IDs, aber verschleierte
-  Schrift statt Namen und leere Felder statt Datum und Uhrzeit.
-- **OpenLigaDB** führt weder die Frauen-Regionalliga West noch die
-  Frauen-Westfalenliga.
-- **worldfootball.net** beantwortet jeden nicht-browserartigen Zugriff mit
-  einer Cloudflare-Prüfung.
+OpenLigaDB ist die rühmliche Ausnahme mit einer offenen, gut dokumentierten
+Schnittstelle — nur ist die Pflege dort mühsam.
 
-Also eine eigene Datenbank, befüllt aus Dateien, die der Admin auf seinem
-eigenen Rechner erzeugt. Der Server ruft nirgends von sich aus etwas ab.
+Daraus ergibt sich der Zweck dieses Projekts:
+
+- **Rein kommt man über Dateien.** JSON oder CSV, beides offen und
+  nachvollziehbar. Woher eine Datei stammt, ist Sache des Betreibers.
+- **Raus kommt man jederzeit.** Jede Ansicht ist als JSON abrufbar, der
+  gesamte Spielplan als CSV. Keine Sackgasse.
+- **Massenänderungen gehören dazu**, nicht als Notbehelf. Spielpläne ändern
+  sich über die Saison; das muss in Minuten gehen, nicht in Stunden.
+
+Auch diese Datenbank lebt davon, dass jemand sie pflegt. Der Unterschied ist,
+wie viel Arbeit das ist: ein Importlauf legt eine komplette Saison an — 240
+Spiele, 16 Mannschaften, 30 Spieltage, aus einer Datei, in unter einer
+Sekunde. Was bleibt, ist die laufende Pflege.
+
+Der Server ruft von sich aus nirgends etwas ab. Dateien werden hochgeladen.
 
 ## Grundsätze
 
@@ -36,16 +49,23 @@ nichts, bleibt der bestehende Wert stehen, statt gelöscht zu werden.
 **Ein Spiel gehört zu seinem Spieltag, unabhängig vom Termin.** Ein vom
 Ostersamstag in den Mai verlegtes Spiel behält seinen Spieltag.
 
-## Datenquellen
+Was als Nächstes ansteht, steht in
+[docs/naechste-schritte.md](docs/naechste-schritte.md) — allen voran
+Benutzerkonten, sobald mehr als eine Person pflegt.
 
-| Quelle | Rolle | Abruf |
-|---|---|---|
-| kicker.de | Primärquelle | `tools/fetch_kicker.py`, lokal |
-| worldfootball.net | Gegenprüfung | Seite im Browser speichern, hochladen |
-| CSV | Massenkorrektur | Export → Tabellenkalkulation → Import |
+## Importformate
 
-Einzelheiten, geprüfte Endpunkte und die Eigenheiten jeder Quelle stehen in
-[docs/datenquellen.md](docs/datenquellen.md).
+| Format | wofür |
+|---|---|
+| JSON (`varcheckdb-import/1`) | vollständige Spielpläne, maschinell erzeugt |
+| CSV | Massenkorrekturen: exportieren, in der Tabellenkalkulation ändern, zurückspielen |
+
+Beide gehen denselben Weg: einlesen, Mannschaften zuordnen, Vorschau,
+Bestätigung. Beschrieben in [docs/import.md](docs/import.md).
+
+Eine grafische Maske zum **Anlegen** einzelner Partien gibt es bewusst nicht.
+Ein Spielplan entsteht als Ganzes, nicht Zeile für Zeile im Browser. Bearbeiten
+lassen sich vorhandene Partien natürlich — einzeln und en bloc.
 
 ## Installation
 

@@ -19,8 +19,8 @@ final class Requirements
 {
     public const MIN_PHP = '8.1.0';
 
-    /** Die groesste zu erwartende Importdatei ist die gespeicherte
-     *  worldfootball-Seite mit rund 0,5 MB. 2 MB gibt Luft. */
+    /** Die groesste zu erwartende Importdatei ist ein gespeicherter
+     *  HTML-Spielplan mit rund 0,5 MB. 2 MB gibt Luft. */
     public const MIN_UPLOAD_BYTES = 2 * 1024 * 1024;
 
     /**
@@ -72,7 +72,7 @@ final class Requirements
             'pdo_mysql' => 'Verbindung zu MariaDB/MySQL',
             'mbstring'  => 'Umlaute in Vereinsnamen korrekt behandeln',
             'json'      => 'Import- und API-Format',
-            'dom'       => 'Auswertung der gespeicherten worldfootball-Seite',
+            'dom'       => 'Auswertung gespeicherter HTML-Spielplaene',
             'libxml'    => 'Grundlage von dom',
         ];
 
@@ -122,7 +122,7 @@ final class Requirements
                 $upload >= self::MIN_UPLOAD_BYTES,
                 (string)ini_get('upload_max_filesize'),
                 '2M oder mehr',
-                'Die gespeicherte worldfootball-Seite ist rund 0,5 MB gross.'
+                'Ein gespeicherter HTML-Spielplan ist schnell 0,5 MB gross.'
             ),
             self::check(
                 'post_max_size',

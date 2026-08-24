@@ -17,15 +17,15 @@ final class AdapterFactory
         if (str_contains($head, 'varcheckdb-import/1') || str_contains($head, 'vijabei-import/1')) {
             return [
                 'adapter' => new KickerJsonAdapter(),
-                'name'    => 'kicker.de',
-                'reason'  => 'Die Datei traegt die Kennung aus tools/fetch_kicker.py.',
+                'name'    => 'JSON-Import',
+                'reason'  => 'Die Datei traegt die Kennung "varcheckdb-import/1".',
             ];
         }
 
         if (str_contains($content, 'data-match_id')) {
             return [
                 'adapter' => new WorldfootballHtmlAdapter(),
-                'name'    => 'worldfootball.net',
+                'name'    => 'HTML-Spielplan',
                 'reason'  => 'Die Datei enthaelt Spiel-Container mit data-match_id.',
             ];
         }
@@ -42,9 +42,9 @@ final class AdapterFactory
             'adapter' => null,
             'name'    => 'unbekannt',
             'reason'  => sprintf(
-                'Der Inhalt von "%s" passt zu keiner bekannten Quelle. Erwartet wird eine '
-                . 'JSON-Datei aus tools/fetch_kicker.py oder eine gespeicherte Seite von '
-                . 'worldfootball.net.',
+                'Der Inhalt von "%s" passt zu keinem bekannten Format. Erwartet wird JSON '
+                . 'mit der Kennung "varcheckdb-import/1", eine CSV-Datei mit den Spalten '
+                . 'des Exports oder ein gespeicherter HTML-Spielplan.',
                 $filename !== '' ? $filename : 'der Datei'
             ),
         ];

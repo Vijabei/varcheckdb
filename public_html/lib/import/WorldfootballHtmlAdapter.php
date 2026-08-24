@@ -35,8 +35,8 @@ final class WorldfootballHtmlAdapter implements Adapter
 
         if (!str_contains($content, 'data-match_id')) {
             throw new ImportException(
-                'In der Datei sind keine Spiele zu finden. Erwartet wird die gespeicherte '
-                . 'Seite "all-matches" von worldfootball.net.'
+                'In der Datei sind keine Spiele zu finden. Erwartet wird ein gespeicherter '
+                . 'HTML-Spielplan, dessen Spiele als Container mit data-match_id vorliegen.'
             );
         }
 
@@ -88,7 +88,7 @@ final class WorldfootballHtmlAdapter implements Adapter
                 $withoutRound
             );
         }
-        $notices[] = 'worldfootball.net liefert keine Halbzeitstaende und keinen Terminstatus. '
+        $notices[] = 'Dieses Format enthaelt keine Halbzeitstaende und keinen Terminstatus. '
             . 'Diese Felder bleiben unangetastet.';
 
         return [

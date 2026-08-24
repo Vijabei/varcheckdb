@@ -286,9 +286,9 @@ admin_nav('import.php', $config);
         <label for="datei">Datei</label>
         <input type="file" id="datei" name="datei" accept=".json,.html,.htm,.txt,.csv" required>
         <p class="note">
-          Erkannt werden die JSON-Datei aus <code>tools/fetch_kicker.py</code> und eine im
-          Browser gespeicherte Seite von worldfootball.net. Höchstens
-          <?= e((string)ini_get('upload_max_filesize')) ?>.
+          Erkannt werden JSON im Format <code>varcheckdb-import/1</code>, CSV und
+          gespeicherte HTML-Spielpläne. Das Format wird am Inhalt erkannt, nicht an
+          der Dateiendung. Höchstens <?= e((string)ini_get('upload_max_filesize')) ?>.
         </p>
 
         <div class="actions"><button type="submit">Einlesen</button></div>
@@ -297,12 +297,13 @@ admin_nav('import.php', $config);
   </div>
 
   <div class="card">
-    <h2 style="margin-top:0">Importdatei erzeugen</h2>
-    <p>Der Abruf läuft auf deinem eigenen Rechner, nicht auf dem Server:</p>
-    <p><code>python3 tools/fetch_kicker.py 4530 2026-27 -o kicker.json</code></p>
-    <p class="note">Für die Gegenprüfung die Seite
-       <code>worldfootball.net/competition/co16640/…/all-matches/</code> im Browser
-       mit Strg+S speichern und hier hochladen.</p>
+    <h2 style="margin-top:0">Woher die Datei kommt</h2>
+    <p>Der Server ruft von sich aus nichts ab. Die Datei wird auf deinem eigenen
+       Rechner erzeugt und hier hochgeladen.</p>
+    <p class="note">Aufbau der beiden Formate: <code>docs/import.md</code>. Für
+       laufende Korrekturen ist der Weg über den
+       <a href="matches.php">Spielplan</a> meist schneller: CSV herunterladen,
+       in der Tabellenkalkulation ändern, hier wieder hochladen.</p>
   </div>
 
 <?php elseif ($unresolved !== []): ?>

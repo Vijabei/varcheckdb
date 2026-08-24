@@ -6,7 +6,7 @@ declare(strict_types=1);
  *
  * Jeder Adapter liefert dieselbe normalisierte Zeilenstruktur, damit
  * TeamMatcher, Differ und Applier quellenunabhaengig bleiben. Ein neuer
- * Adapter (worldfootball, FuPa, ...) muss nur parse() implementieren.
+ * Adapter muss nur parse() implementieren.
  */
 interface Adapter
 {
