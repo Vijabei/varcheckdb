@@ -72,9 +72,10 @@ lassen sich vorhandene Partien natürlich — einzeln und en bloc.
 ## Installation
 
 `public_html/` auf den Webspace laden, `db/` möglichst eine Ebene darüber,
-dann `install.php` aufrufen. Eine bestehende Installation bringt
-`php tools/migrate.php` nach — es erkennt den Stand der Datenbank und führt
-nur aus, was fehlt. Der Installer prüft die Umgebung, testet die
+dann `install.php` aufrufen. Eine bestehende Installation bringt `update.php`
+nach — genauso hochladen und aufrufen; es erkennt den Stand der Datenbank und
+führt nur aus, was fehlt. Wer SSH hat, kann stattdessen
+`php tools/migrate.php` benutzen. Der Installer prüft die Umgebung, testet die
 Datenbankrechte praktisch aus, spielt das Schema ein und löscht sich am Ende
 selbst. Siehe [docs/installation.md](docs/installation.md).
 

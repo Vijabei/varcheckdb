@@ -205,6 +205,38 @@ T::same(24, (int)$fresh->query('SELECT COUNT(*) FROM matches')->fetchColumn(),
     'mit der geschriebenen Konfiguration laesst sich verbinden und lesen');
 unlink($configPath);
 
+T::group('8 Migrationen gegen das echte Schema');
+
+// Die Migrationsdateien benutzen information_schema; gegen SQLite laesst sich
+// das nicht pruefen. Auf einer frischen Datenbank muessen alle als bereits
+// vorhanden erkannt werden - liefe eine davon, wuerde sie scheitern.
+$migrator = new Migrator(ROOT . '/db/migrations');
+
+T::ok($migrator->dateien() !== [], 'die Migrationsdateien werden gefunden');
+T::ok(Migrator::eingerichtet($pdo), 'das Schema steht');
+
+$stand = $migrator->stand($pdo);
+$offen = array_values(array_filter($stand, fn(array $e): bool => $e['zustand'] === Migrator::OFFEN));
+
+T::same([], array_column($offen, 'name'), 'auf dem aktuellen Schema ist nichts offen');
+
+foreach ($stand as $eintrag) {
+    T::same(Migrator::VORHANDEN, $eintrag['zustand'],
+        sprintf('%s wird als vorhanden erkannt', $eintrag['name']));
+}
+
+$ergebnis = $migrator->ausfuehren($pdo);
+T::same(0, $ergebnis['ausgefuehrt'], 'nichts wurde ausgefuehrt');
+T::same(count($migrator->dateien()), $ergebnis['vermerkt'], 'alles nur vermerkt');
+T::same(null, $ergebnis['abgebrochen'], 'nichts abgebrochen');
+
+T::same(count($migrator->dateien()), (int)Db::value('SELECT COUNT(*) FROM schema_migrations WHERE detected = 1'),
+    'der Stand ist als erkannt hinterlegt');
+
+// Ein zweiter Lauf darf nichts anrichten.
+$zweiter = $migrator->ausfuehren($pdo);
+T::same(0, $zweiter['ausgefuehrt'] + $zweiter['vermerkt'], 'ein zweiter Lauf ist folgenlos');
+
 // ------------------------------------------------------------------ Aufraeumen
 
 if (!$keep) {

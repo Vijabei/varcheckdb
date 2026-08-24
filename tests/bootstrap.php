@@ -30,6 +30,7 @@ require_once ROOT . '/public_html/lib/import/Differ.php';
 require_once ROOT . '/public_html/lib/import/Applier.php';
 require_once ROOT . '/public_html/lib/setup/Requirements.php';
 require_once ROOT . '/public_html/lib/setup/Installer.php';
+require_once ROOT . '/public_html/lib/setup/Migrator.php';
 
 final class T
 {

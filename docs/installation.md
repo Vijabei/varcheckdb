@@ -104,7 +104,44 @@ gescheitert ist. Danach wird `config.php` geschrieben und sofort gegengelesen.
 
 ## Bestehende Installation aktualisieren
 
-Nach einem Update der Dateien bringt ein Werkzeug die Datenbank nach:
+Nach einem Update der Dateien muss die Datenbank nachziehen. Das geht genau
+wie die Installation: hochladen, im Browser aufrufen, danach wieder entfernen.
+
+1. Neue Dateien hochladen, **einschließlich `db/migrations/`** und
+   `public_html/update.php`.
+2. `https://deine-domain/update.php` aufrufen.
+3. Mit dem Passwort aus der Installation anmelden.
+4. Den angezeigten Stand prüfen, dann *Jetzt aktualisieren*.
+5. `update.php` wieder entfernen — die Seite bietet es an.
+
+### Warum das Passwort und nicht das Benutzerkonto
+
+Gerade wenn eine Migration nötig ist, kann die Benutzertabelle noch fehlen
+oder anders aussehen. Ein Zugang, der von dem abhängt, was er reparieren
+soll, taugt nicht. `update.php` prüft deshalb gegen den
+`admin_password_hash` aus `config.php`.
+
+### Was die Seite zeigt
+
+| Zustand | |
+|---|---|
+| erledigt | schon gelaufen, steht in `schema_migrations` |
+| bereits vorhanden | der Zustand ist schon hergestellt — wird nur vermerkt, nicht ausgeführt |
+| offen | wird beim Aktualisieren ausgeführt |
+| blockiert | etwas steht im Weg; die Seite zeigt was, und was zu tun ist |
+
+**Blockiert** heißt nicht kaputt. Beispiel: doppelte Mannschaftsnamen müssen
+zusammengeführt werden, ehe der Name eindeutig werden kann. Die Seite zeigt
+die betroffenen Zeilen und die nötigen SQL-Anweisungen zum Kopieren. Nach dem
+Aufräumen in phpMyAdmin genügt ein Neuladen.
+
+Es wird bis zur gesperrten Migration ausgeführt und dort angehalten — was
+davor lief, bleibt bestehen.
+
+### Auf der Kommandozeile
+
+Wer SSH hat, kann dasselbe ohne Upload erledigen. Beide Wege benutzen
+dieselbe Logik:
 
 ```bash
 php tools/migrate.php --status    zeigt den Stand, ändert nichts
@@ -112,25 +149,17 @@ php tools/migrate.php --probe     zeigt, was laufen würde
 php tools/migrate.php             führt aus
 ```
 
-Es fragt zuerst ab, was schon da ist, und führt nur aus, was fehlt. Eine
-Migration, die auf eine unpassende Datenbank trifft, richtet mehr Schaden an
-als sie behebt.
-
-Erkennt es, dass eine Migration bereits vorliegt — etwa bei einer frischen
-Installation, die das Schema schon vollständig mitbringt — vermerkt es sie
-als erledigt, ohne sie auszuführen.
-
-Steht etwas im Weg, bricht es ab, **bevor** es etwas ändert, und sagt was zu
-tun ist. Beispiel: doppelte Mannschaftsnamen müssen zusammengeführt werden,
-ehe der Name eindeutig werden kann — das Werkzeug zeigt die betroffenen
-Zeilen und die nötigen Anweisungen.
-
 Die Zugangsdaten kommen aus `public_html/config.php`. Ohne Datei geht es auch
 über Umgebungsvariablen:
 
 ```bash
 MYSQL_HOST=localhost MYSQL_DB=... MYSQL_USER=... MYSQL_PASSWORD=... php tools/migrate.php
 ```
+
+### Vorher sichern
+
+Migrationen ändern die Struktur; ein Rückweg ist nicht eingebaut. Eine
+Sicherung über die Hetzner-Konsole oder phpMyAdmin dauert eine Minute.
 
 ## Mailversand
 
