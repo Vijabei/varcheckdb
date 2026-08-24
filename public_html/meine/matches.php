@@ -1,17 +1,19 @@
 <?php
 declare(strict_types=1);
 
-/** Spielplan ansehen, einzeln und en bloc korrigieren, als CSV ausgeben. */
+/** Spielplan ansehen, einzeln und en bloc korrigieren, herunterladen. */
 
 require_once __DIR__ . '/../lib/app.php';
 require_once __DIR__ . '/../lib/repo.php';
 require_once __DIR__ . '/../lib/editor.php';
+require_once __DIR__ . '/../lib/normalize.php';
+require_once __DIR__ . '/../lib/venues.php';
 require_once __DIR__ . '/../lib/access.php';
 require_once __DIR__ . '/../lib/import/Adapter.php';
 require_once __DIR__ . '/../lib/import/CsvAdapter.php';
 require_once __DIR__ . '/../lib/import/FieldSource.php';
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/layout.php';
+require_once __DIR__ . '/../lib/auth.php';
+require_once __DIR__ . '/../lib/layout.php';
 
 $config = App::boot();
 Auth::require();
@@ -41,20 +43,78 @@ foreach (['round', 'status'] as $key) {
     }
 }
 
-// ------------------------------------------------------------------- CSV
+// -------------------------------------------------------------- Herunterladen
 
-if (($_GET['export'] ?? '') === 'csv' && $competitionId > 0) {
-    $csv = CsvAdapter::export(Repo::matches($competitionId, $filter), $timezone);
-    $competition = Db::one('SELECT cs.shortcut, s.start_year FROM competition_seasons cs
-                              JOIN seasons s ON s.id = cs.season_id WHERE cs.id = ?', [$competitionId]);
+// Beide Formate liefern denselben Ausschnitt - was oben gefiltert ist, steht
+// in der Datei. CSV geht zurueck in die Tabellenkalkulation und von dort
+// ueber den Import wieder herein; JSON ist dieselbe Form, die auch die
+// oeffentliche Schnittstelle ausgibt.
+$export = (string)($_GET['export'] ?? '');
 
-    header('Content-Type: text/csv; charset=utf-8');
-    header(sprintf(
-        'Content-Disposition: attachment; filename="spielplan-%s-%s.csv"',
+if (($export === 'csv' || $export === 'json') && $competitionId > 0) {
+    $rows = Repo::matches($competitionId, $filter);
+    $competition = Db::one(
+        'SELECT cs.shortcut, cs.name, c.slug, s.name AS season_name, s.start_year
+           FROM competition_seasons cs
+           JOIN competitions c ON c.id = cs.competition_id
+           JOIN seasons s      ON s.id = cs.season_id
+          WHERE cs.id = ?',
+        [$competitionId]
+    );
+
+    $dateiname = sprintf(
+        'spielplan-%s-%s.%s',
         $competition['shortcut'] ?? 'export',
-        $competition['start_year'] ?? date('Y')
-    ));
-    echo $csv;
+        $competition['start_year'] ?? date('Y'),
+        $export
+    );
+
+    header(sprintf('Content-Disposition: attachment; filename="%s"', $dateiname));
+
+    if ($export === 'csv') {
+        header('Content-Type: text/csv; charset=utf-8');
+        echo CsvAdapter::export($rows, $timezone);
+        exit;
+    }
+
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'attribution' => $config['attribution'] ?? null,
+        'competition' => $competition['name'] ?? null,
+        'season'      => $competition['season_name'] ?? null,
+        'timezone'    => $timezone,
+        'count'       => count($rows),
+        'matches'     => array_map(
+            static function (array $row) use ($timezone): array {
+                $utc = $row['kickoff_utc'] === null
+                    ? null
+                    : new DateTimeImmutable((string)$row['kickoff_utc'], new DateTimeZone('UTC'));
+
+                return [
+                    'id'        => (int)$row['id'],
+                    'round'     => (int)$row['round_number'],
+                    'roundName' => $row['round_name'],
+                    'kickoff'   => $utc?->setTimezone(new DateTimeZone($timezone))->format('Y-m-d\TH:i:s'),
+                    'kickoffUtc' => $utc?->format('Y-m-d\TH:i:s\Z'),
+                    'kickoffConfirmed' => (bool)$row['kickoff_is_confirmed'],
+                    'status'    => $row['status'],
+                    'home'      => ['name' => $row['home_name'], 'shortName' => $row['home_short']],
+                    'away'      => ['name' => $row['away_name'], 'shortName' => $row['away_short']],
+                    'result'    => $row['home_goals'] === null ? null : [
+                        'home' => (int)$row['home_goals'],
+                        'away' => (int)$row['away_goals'],
+                        'halfTimeHome' => $row['home_goals_ht'] === null ? null : (int)$row['home_goals_ht'],
+                        'halfTimeAway' => $row['away_goals_ht'] === null ? null : (int)$row['away_goals_ht'],
+                    ],
+                    'venue'         => $row['venue_name'],
+                    'venueCapacity' => $row['venue_capacity'] === null ? null : (int)$row['venue_capacity'],
+                    'spectators'    => $row['spectators'] === null ? null : (int)$row['spectators'],
+                    'note'          => $row['note'],
+                ];
+            },
+            $rows
+        ),
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
@@ -124,8 +184,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && Auth::tokenValid()) {
                     'home_goals_ht' => ($_POST['home_goals_ht'] ?? '') === '' ? null : (int)$_POST['home_goals_ht'],
                     'away_goals_ht' => ($_POST['away_goals_ht'] ?? '') === '' ? null : (int)$_POST['away_goals_ht'],
                     'status'        => (string)($_POST['status'] ?? 'scheduled'),
+                    'venue_id'      => ($_POST['venue_id'] ?? '') === '' ? null : (int)$_POST['venue_id'],
                     'note'          => ($_POST['note'] ?? '') === '' ? null : (string)$_POST['note'],
                 ];
+
+                // Eine unsinnige Zuschauerzahl gar nicht erst speichern - sie
+                // stuende sonst als bestaetigter Wert in der Datenbank.
+                $zuschauer = Venues::capacity($_POST['spectators'] ?? null);
+
+                if ($zuschauer === false) {
+                    $errors[] = 'Die Zuschauerzahl muss eine Zahl ab 0 sein oder leer bleiben.';
+                } else {
+                    $values['spectators'] = $zuschauer;
+                }
 
                 $changed = Editor::update($matchId, $values, Auth::username());
 
@@ -145,6 +216,8 @@ $matches = $competitionId > 0 ? Repo::matches($competitionId, $filter) : [];
 $rounds = $competitionId > 0
     ? Db::all('SELECT number, name FROM rounds WHERE competition_season_id = ? ORDER BY number', [$competitionId])
     : [];
+
+$spielorte = Venues::all();
 
 $edit = (int)($_GET['edit'] ?? 0);
 $editRow = null;
@@ -224,17 +297,23 @@ admin_nav('matches.php', $config);
           <?php endforeach; ?>
         </select>
       </div>
-      <div>
-        <a href="?competition=<?= $competitionId ?><?= isset($filter['round']) ? '&round=' . (int)$filter['round'] : '' ?><?= isset($filter['status']) ? '&status=' . e($filter['status']) : '' ?>&export=csv">
-          <button type="button" class="ghost">CSV herunterladen</button>
-        </a>
+      <?php
+      $auswahl = '?competition=' . $competitionId
+          . (isset($filter['round']) ? '&round=' . (int)$filter['round'] : '')
+          . (isset($filter['status']) ? '&status=' . e($filter['status']) : '');
+      ?>
+      <div style="display:flex;gap:.5rem">
+        <a href="<?= $auswahl ?>&export=csv"><button type="button" class="ghost">CSV</button></a>
+        <a href="<?= $auswahl ?>&export=json"><button type="button" class="ghost">JSON</button></a>
       </div>
     </div>
   </form>
   <p class="note" style="margin-top:1rem">
-    Für viele Änderungen auf einmal: CSV herunterladen, in der Tabellenkalkulation
-    bearbeiten und unter <a href="import.php">Import</a> wieder hochladen. Die Vorschau
-    zeigt dann genau, was sich ändert.
+    Heruntergeladen wird immer die Auswahl von oben. Für viele Änderungen auf
+    einmal: CSV nehmen, in der Tabellenkalkulation bearbeiten und unter
+    <a href="import.php">Import</a> wieder hochladen &ndash; die Vorschau zeigt dann
+    genau, was sich ändert. JSON hat dieselbe Form wie die öffentliche
+    Schnittstelle und ist zum Weiterverarbeiten gedacht.
   </p>
 </div>
 
@@ -291,6 +370,34 @@ admin_nav('matches.php', $config);
         </div>
       </div>
 
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:2;min-width:14rem">
+          <label for="venue_id">Spielort</label>
+          <select id="venue_id" name="venue_id">
+            <option value="" data-capacity="">— nicht angegeben —</option>
+            <?php foreach ($spielorte as $ort): ?>
+              <option value="<?= (int)$ort['id'] ?>" data-capacity="<?= e((string)$ort['capacity']) ?>"
+                      <?= (int)$editRow['venue_id'] === (int)$ort['id'] ? 'selected' : '' ?>>
+                <?= e($ort['name']) ?><?= $ort['city'] === null ? '' : ', ' . e($ort['city']) ?><?php
+                  if ($ort['capacity'] !== null) {
+                      echo ' (' . number_format((int)$ort['capacity'], 0, ',', '.') . ' Plätze)';
+                  } ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div style="flex:1;min-width:8rem">
+          <label for="spectators">Zuschauer</label>
+          <input type="text" id="spectators" name="spectators" inputmode="numeric"
+                 value="<?= e((string)$editRow['spectators']) ?>">
+          <p class="note" id="fassung" style="margin:.35rem 0 0"></p>
+        </div>
+      </div>
+      <?php if ($spielorte === []): ?>
+        <p class="note">Noch kein Spielort angelegt &ndash;
+           <a href="venues.php">hier anlegen</a>.</p>
+      <?php endif; ?>
+
       <label for="note">Bemerkung</label>
       <input type="text" id="note" name="note" value="<?= e((string)$editRow['note']) ?>">
 
@@ -306,6 +413,35 @@ admin_nav('matches.php', $config);
       </p>
     </form>
   </div>
+
+  <script>
+  // Zeigt neben der Zuschauerzahl, was der gewaehlte Ort fasst - eine Null
+  // zu viel faellt so beim Eintragen auf und nicht erst in der Auswertung.
+  (function () {
+    var ort = document.getElementById('venue_id');
+    var zahl = document.getElementById('spectators');
+    var hinweis = document.getElementById('fassung');
+    if (!ort || !zahl || !hinweis) { return; }
+
+    function zeigen() {
+      var fasst = parseInt(ort.selectedOptions[0].dataset.capacity || '', 10);
+      if (isNaN(fasst)) {
+        hinweis.textContent = ort.value === '' ? '' : 'Fassungsvermögen unbekannt.';
+        hinweis.style.color = '';
+        return;
+      }
+      var da = parseInt(zahl.value.replace(/[^0-9]/g, ''), 10);
+      hinweis.textContent = 'Der Ort fasst ' + fasst.toLocaleString('de-DE') + '.';
+      var zuViel = !isNaN(da) && da > fasst;
+      hinweis.style.color = zuViel ? 'var(--bad)' : '';
+      if (zuViel) { hinweis.textContent += ' Eingetragen sind mehr.'; }
+    }
+
+    ort.addEventListener('change', zeigen);
+    zahl.addEventListener('input', zeigen);
+    zeigen();
+  })();
+  </script>
 <?php endif; ?>
 
 <?php if ($matches === []): ?>

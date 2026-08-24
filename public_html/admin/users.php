@@ -5,8 +5,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../lib/app.php';
 require_once __DIR__ . '/../lib/users.php';
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/layout.php';
+require_once __DIR__ . '/../lib/auth.php';
+require_once __DIR__ . '/../lib/layout.php';
 
 $config = App::boot();
 Auth::requireCapability('users.manage');
@@ -98,7 +98,7 @@ $benutzer = Users::all();
 $aendern = (int)($_GET['aendern'] ?? 0);
 
 admin_head('Benutzer', $config);
-admin_nav('users.php', $config);
+admin_nav('users.php', $config, 'admin');
 ?>
 
 <h1>Benutzer</h1>
@@ -109,14 +109,6 @@ admin_nav('users.php', $config);
 <?php foreach ($notices as $notice): ?>
   <div class="msg good"><?= e($notice) ?></div>
 <?php endforeach; ?>
-
-<?php if (Auth::isBootstrap()): ?>
-  <div class="msg bad">
-    <strong>Du bist über das Passwort aus <code>config.php</code> angemeldet.</strong>
-    Das gilt nur, solange kein Verwalter angelegt ist. Lege jetzt einen an &ndash;
-    danach meldest du dich mit Benutzername und Passwort an.
-  </div>
-<?php endif; ?>
 
 <div class="card">
   <h2 style="margin-top:0">Vorhanden</h2>

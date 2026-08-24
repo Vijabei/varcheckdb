@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 /** Mailadresse über den Verweis aus der Bestätigungsmail freischalten. */
 
-require_once __DIR__ . '/../lib/app.php';
-require_once __DIR__ . '/../lib/users.php';
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/layout.php';
+require_once __DIR__ . '/lib/app.php';
+require_once __DIR__ . '/lib/users.php';
+require_once __DIR__ . '/lib/auth.php';
+require_once __DIR__ . '/lib/layout.php';
 
 $config = App::boot();
 Auth::start();
@@ -31,12 +31,12 @@ admin_head('Adresse bestätigen', $config);
     <?php if ($wer !== null): ?>
       <div class="msg good">Die Adresse von <strong><?= e($wer['username']) ?></strong> ist bestätigt.</div>
       <p class="note">Ein vergessenes Passwort kannst du jetzt selbst zurücksetzen.</p>
-      <div class="actions"><a href="index.php"><button type="button">Zur Anmeldung</button></a></div>
+      <div class="actions"><a href="login.php"><button type="button">Zur Anmeldung</button></a></div>
     <?php else: ?>
       <div class="msg bad">Dieser Verweis gilt nicht mehr &ndash; er ist abgelaufen oder
         schon benutzt worden.</div>
       <p class="note">Melde dich an; dort kannst du dir einen neuen schicken lassen.</p>
-      <div class="actions"><a href="index.php"><button type="button">Zur Anmeldung</button></a></div>
+      <div class="actions"><a href="login.php"><button type="button">Zur Anmeldung</button></a></div>
     <?php endif; ?>
   </div>
 </main>

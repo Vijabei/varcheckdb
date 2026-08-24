@@ -318,7 +318,7 @@ if ($step === 4 && $_SERVER['REQUEST_METHOD'] === 'POST' && $errors === []) {
 // --- Schritt 5: Installer entfernen
 if ($step === 5 && ($_POST['action'] ?? '') === 'remove' && tokenValid()) {
     if (@unlink(__FILE__)) {
-        header('Location: ' . rtrim(guessBaseUrl(), '/') . '/admin/');
+        header('Location: ' . rtrim(guessBaseUrl(), '/') . '/login.php');
         exit;
     }
     $errors[] = 'Die Datei liess sich nicht loeschen. Bitte install.php von Hand entfernen.';
@@ -441,7 +441,7 @@ code { background: #eef0f2; padding: .1rem .3rem; border-radius: .2rem; font-siz
      und leere die Datenbank. Andernfalls loesche <code>install.php</code> &mdash;
      die Datei sollte auf einem laufenden System nicht erreichbar sein.</p>
   <div class="actions">
-    <a href="admin/"><button type="button">Zur Anmeldung</button></a>
+    <a href="login.php"><button type="button">Zur Anmeldung</button></a>
   </div>
 
 <?php elseif ($step === 1): ?>
@@ -613,9 +613,9 @@ code { background: #eef0f2; padding: .1rem .3rem; border-radius: .2rem; font-siz
     <label for="admin_username">Benutzername</label>
     <input type="text" id="admin_username" name="admin_username"
            value="<?= e(stored('admin_username', 'admin')) ?>" autocomplete="username" required>
-    <p class="note">Dieser Zugang bekommt die Rolle Verwaltung und darf Benutzer,
-       Wettbewerbe und Importe verwalten. Weitere Zugänge legst du später im
-       Bereich „Benutzer" an.</p>
+    <p class="note">Dieser Zugang bekommt die Rolle Verwaltung und darf alles.
+       Weitere Zugänge legst du später unter „Verwaltung &rarr; Benutzer" an
+       &ndash; oder die Leute melden sich selbst an und führen eigene Ligen.</p>
 
     <label for="admin_email">Mailadresse</label>
     <input type="text" id="admin_email" name="admin_email"
@@ -651,15 +651,24 @@ code { background: #eef0f2; padding: .1rem .3rem; border-radius: .2rem; font-siz
     <input type="hidden" name="action" value="remove">
     <div class="actions">
       <button type="submit">Installer löschen und anmelden</button>
-      <a href="admin/" class="note">Ohne Loeschen weiter</a>
+      <a href="login.php" class="note">Ohne Loeschen weiter</a>
     </div>
   </form>
 
   <h2>Wie es weitergeht</h2>
-  <p>Nach der Anmeldung laedst du die erste Importdatei hoch &ndash; JSON oder CSV.
-     Beim ersten Import ordnest du die Mannschaftsnamen einmalig zu; danach greift
-     die Zuordnung automatisch.</p>
-  <p>Aufbau der Formate: <code>docs/import.md</code>.</p>
+  <p><strong>Die Datenbank ist leer.</strong> Es gibt keine Beispielligen, die du erst
+     wegräumen müsstest &ndash; angelegt wird nur, was du selbst anlegst.</p>
+  <ol>
+    <li>Anmelden und unter <em>Meine Ligen &rarr; Ligen</em> die erste Liga anlegen.
+        Du wirst damit ihr Besitzer.</li>
+    <li>Unter <em>Import</em> die erste Datei hochladen &ndash; JSON oder CSV. Beim
+        ersten Mal ordnest du die Mannschaftsnamen einmalig zu; danach greift die
+        Zuordnung automatisch.</li>
+    <li>Falls du Zuschauerzahlen erfassen willst: unter <em>Spielorte</em> die
+        Plätze anlegen. Der Spielort wird am einzelnen Spiel gesetzt.</li>
+  </ol>
+  <p>Aufbau der Formate: <code>docs/import.md</code>. Zur Benennung der Ligen:
+     <code>docs/ligen.md</code>.</p>
 
 <?php endif; ?>
 

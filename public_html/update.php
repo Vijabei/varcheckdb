@@ -171,7 +171,7 @@ if (($_POST['action'] ?? '') === 'run' && $angemeldet && $pdo !== null && $stand
 
 if (($_POST['action'] ?? '') === 'remove' && $angemeldet && tokenValid()) {
     if (@unlink(__FILE__)) {
-        header('Location: admin/');
+        header('Location: login.php');
         exit;
     }
     $errors[] = 'Die Datei ließ sich nicht löschen. Bitte update.php von Hand entfernen.';
@@ -379,7 +379,7 @@ a { color:var(--accent); }
       <input type="hidden" name="action" value="remove">
       <div class="actions">
         <button type="submit" class="ghost">Diese Datei löschen</button>
-        <a href="admin/" class="note">Zur Anmeldung</a>
+        <a href="login.php" class="note">Zur Anmeldung</a>
       </div>
     </form>
   </div>

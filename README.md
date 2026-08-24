@@ -49,6 +49,15 @@ nichts, bleibt der bestehende Wert stehen, statt gelöscht zu werden.
 **Ein Spiel gehört zu seinem Spieltag, unabhängig vom Termin.** Ein vom
 Ostersamstag in den Mai verlegtes Spiel behält seinen Spieltag.
 
+**Der Spielort gehört zum Spiel, nicht zum Verein.** Ausweichplatz, Heimspiel
+beim Gegner, Endspiel auf neutralem Boden — mit einer festen Zuordnung wären
+gerade die interessanten Fälle nicht abzubilden. Siehe
+[docs/spielorte.md](docs/spielorte.md).
+
+**Eine frische Installation ist leer.** Keine Beispieldaten, die man erst
+wegräumen müsste. Die erste Liga legst du selbst an, siehe
+[docs/ligen.md](docs/ligen.md).
+
 Mehrere Personen können pflegen. Wer eine Liga anlegt, betreut sie und
 entscheidet, wer daran mitarbeitet; an fremden Ligen kann niemand etwas ändern.
 Deshalb kann sich jeder anmelden, ohne dass das ein Risiko wäre. Siehe
@@ -64,6 +73,9 @@ Deshalb kann sich jeder anmelden, ohne dass das ein Risiko wäre. Siehe
 
 Beide gehen denselben Weg: einlesen, Mannschaften zuordnen, Vorschau,
 Bestätigung. Beschrieben in [docs/import.md](docs/import.md).
+
+Exportiert wird ebenfalls in beiden Formaten — am Spielplan über zwei
+Schaltflächen, über die Schnittstelle mit `?format=csv`.
 
 Eine grafische Maske zum **Anlegen** einzelner Partien gibt es bewusst nicht.
 Ein Spielplan entsteht als Ganzes, nicht Zeile für Zeile im Browser. Bearbeiten
@@ -111,7 +123,10 @@ MYSQL_HOST=127.0.0.1 MYSQL_DB=varcheckdb_test MYSQL_USER=BENUTZER MYSQL_PASSWORD
 public_html/          Dokumentenverzeichnis
   index.php           Startseite und API
   install.php         Installer, wird nach der Einrichtung gelöscht
-  admin/              Anmeldung, Spielplanpflege, Import
+  login.php           Anmeldung
+  register.php        Konto anlegen
+  meine/              Ligen, Spielplan, Import, Spielorte — für jeden Angemeldeten
+  admin/              Benutzer und Betrieb — nur für den Webadmin
   lib/                Anwendungscode
     import/           Adapter, Namensabgleich, Differ, Übernahme
     api/              OpenLigaDB-Übersetzung

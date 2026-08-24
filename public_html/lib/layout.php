@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-/** Gemeinsamer Rahmen aller Adminseiten. */
+/** Gemeinsamer Rahmen der angemeldeten Seiten in meine/ und admin/. */
 
-require_once __DIR__ . '/../lib/users.php';
+require_once __DIR__ . '/users.php';
 
 function admin_head(string $title, array $config): void
 {
@@ -57,21 +57,25 @@ a { color:var(--accent); }
 <?php
 }
 
-function admin_nav(string $current, array $config): void
+function admin_nav(string $current, array $config, string $bereich = 'meine'): void
 {
-    // Nur zeigen, was die Rolle auch darf - ein Verweis, der zu
-    // "nicht erlaubt" fuehrt, ist eine Zumutung.
-    // Spielplan, Import und Wettbewerbe stehen jedem Angemeldeten offen -
-    // was er dort darf, entscheidet sich je Liga.
-    $items = [
-        'index.php'        => 'Übersicht',
-        'matches.php'      => 'Spielplan',
-        'import.php'       => 'Import',
-        'competitions.php' => 'Wettbewerbe',
-    ];
-
-    if (Auth::can('users.manage')) {
-        $items['users.php'] = 'Benutzer';
+    // Zwei getrennte Bereiche: meine/ gehoert jedem Angemeldeten, admin/ dem
+    // Webadmin. Gezeigt wird nur, was die Rolle auch darf - ein Verweis, der
+    // zu "nicht erlaubt" fuehrt, ist eine Zumutung.
+    if ($bereich === 'admin') {
+        $items = ['index.php' => 'Werkzeuge', 'users.php' => 'Benutzer'];
+        $wechsel = ['../meine/' => 'Meine Ligen'];
+    } else {
+        // Spielplan, Import, Ligen und Spielorte stehen jedem Angemeldeten
+        // offen - was er dort darf, entscheidet sich je Liga.
+        $items = [
+            'index.php'        => 'Übersicht',
+            'matches.php'      => 'Spielplan',
+            'import.php'       => 'Import',
+            'competitions.php' => 'Ligen',
+            'venues.php'       => 'Spielorte',
+        ];
+        $wechsel = Auth::can('system.manage') ? ['../admin/' => 'Verwaltung'] : [];
     }
     ?>
 <header><div class="inner">
@@ -79,11 +83,14 @@ function admin_nav(string $current, array $config): void
   <?php foreach ($items as $file => $label): ?>
     <a href="<?= $file ?>" class="<?= $file === $current ? 'on' : '' ?>"><?= $label ?></a>
   <?php endforeach; ?>
+  <?php foreach ($wechsel as $ziel => $label): ?>
+    <a href="<?= $ziel ?>"><?= $label ?></a>
+  <?php endforeach; ?>
   <a href="../">Öffentliche Seite</a>
   <span class="wer" title="<?= htmlspecialchars(Users::ROLES[Auth::role()] ?? '', ENT_QUOTES, 'UTF-8') ?>">
     <?= htmlspecialchars(Auth::username(), ENT_QUOTES, 'UTF-8') ?>
   </span>
-  <a href="index.php?logout=1">Abmelden</a>
+  <a href="../login.php?logout=1">Abmelden</a>
 </div></header>
 <main>
 <?php

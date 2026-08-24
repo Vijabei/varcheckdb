@@ -11,9 +11,6 @@ CREATE TABLE competitions (
   name        VARCHAR(191) NOT NULL,
   gender      VARCHAR(16)      NULL,
   age_group   VARCHAR(32)      NULL,
-  region      VARCHAR(64)      NULL,
-  level       VARCHAR(64)      NULL,
-  organizer   VARCHAR(128)     NULL,
   created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_competitions_slug (slug)
@@ -91,6 +88,7 @@ CREATE TABLE venues (
   name       VARCHAR(191) NOT NULL,
   city       VARCHAR(128)     NULL,
   address    VARCHAR(255)     NULL,
+  capacity   INT UNSIGNED     NULL,             -- Fassungsvermoegen, NULL = unbekannt
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_venues_name_city (name, city)

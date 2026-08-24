@@ -12,6 +12,19 @@ bestehenden Ligen **nichts** ändern. Es kann eigene Ligen anlegen und die
 Risiko, das durch eine Türsteherrolle aufgefangen werden müsste, sondern
 ungefährlich, weil Schreibrechte immer an einer eigenen Liga hängen.
 
+## Zwei Bereiche
+
+Die Oberfläche ist entlang derselben Trennung geschnitten:
+
+| Ordner | Für wen | Was |
+|---|---|---|
+| `/meine/` | jeden Angemeldeten | Ligen, Spielplan, Import, Spielorte |
+| `/admin/` | nur den Webadmin | Benutzerkonten, Datenbankstand, Umgebung |
+
+Angemeldet wird sich einmal unter `/login.php`; danach führt die Navigation in
+den passenden Bereich. Wer die Rolle *Mitmachen* hat, sieht `/admin/` gar nicht
+erst und bekommt dort eine Absage.
+
 ## Zwei Ebenen
 
 **Global** — was jemand grundsätzlich ist:
@@ -40,7 +53,7 @@ eine Liga betreut, betreut sie über die Jahre.
 
 ## Mitmachen
 
-Konto anlegen unter `/admin/register.php`. Gebraucht werden Benutzername,
+Konto anlegen unter `/register.php`. Gebraucht werden Benutzername,
 Mailadresse und Passwort.
 
 **Die Mailadresse dient allein dem Zurücksetzen des Passworts.** Kein
@@ -158,8 +171,24 @@ UPDATE users
  WHERE username_normalized = 'dein_benutzername';
 ```
 
-Gibt es gar keinen aktiven Webadmin mehr, greift wieder das Passwort aus
-`config.php`, und du legst über den Adminbereich einen neuen an.
+Gibt es gar keinen aktiven Webadmin mehr, hilft nur dieser Weg: **einen
+Ersatzzugang gibt es nicht.** Früher galt ersatzweise das Passwort aus
+`config.php`, solange noch kein Verwalter angelegt war. Der Installer legt den
+ersten Verwalter inzwischen selbst an — damit war das eine Tür ohne Zweck, und
+eine Tür ohne Zweck gehört zu.
+
+Ein Konto von Hand nachziehen, wenn die Tabelle leer ist:
+
+```sql
+INSERT INTO users (username, username_normalized, email, email_normalized,
+                   email_verified_at, password_hash, role, active, created_at)
+VALUES ('deinname', 'deinname', 'du@example.org', 'du@example.org',
+        UTC_TIMESTAMP(), 'HIER_DER_HASH', 'admin', 1, UTC_TIMESTAMP());
+```
+
+Das Passwort aus `config.php` (`admin_password_hash`) bleibt bestehen, hat aber
+nur noch eine Aufgabe: es schützt `update.php`. Siehe
+[installation.md](installation.md).
 
 ## Was es nicht gibt
 

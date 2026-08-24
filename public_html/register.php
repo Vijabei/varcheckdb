@@ -9,17 +9,17 @@ declare(strict_types=1);
  * keine Mailadresse.
  */
 
-require_once __DIR__ . '/../lib/app.php';
-require_once __DIR__ . '/../lib/users.php';
-require_once __DIR__ . '/../lib/mail.php';
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/layout.php';
+require_once __DIR__ . '/lib/app.php';
+require_once __DIR__ . '/lib/users.php';
+require_once __DIR__ . '/lib/mail.php';
+require_once __DIR__ . '/lib/auth.php';
+require_once __DIR__ . '/lib/layout.php';
 
 $config = App::boot();
 Auth::start();
 
 if (Auth::isLoggedIn()) {
-    header('Location: index.php');
+    header('Location: meine/');
     exit;
 }
 
@@ -108,7 +108,7 @@ admin_head('Anmelden', $config);
         <div class="msg bad"><?= e($error) ?></div>
       <?php endforeach; ?>
       <p>Du kannst dich jetzt anmelden, eigene Ligen anlegen und pflegen.</p>
-      <div class="actions"><a href="index.php"><button type="button">Zur Anmeldung</button></a></div>
+      <div class="actions"><a href="login.php"><button type="button">Zur Anmeldung</button></a></div>
     </div>
   <?php else: ?>
     <div class="card">
@@ -138,7 +138,7 @@ admin_head('Anmelden', $config);
 
         <div class="actions">
           <button type="submit">Konto anlegen</button>
-          <a href="index.php" class="note">Schon angemeldet?</a>
+          <a href="login.php" class="note">Schon angemeldet?</a>
         </div>
       </form>
     </div>

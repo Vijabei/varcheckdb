@@ -101,6 +101,13 @@ T::ok(str_starts_with($charset, 'utf8mb4'), "die Datenbank steht auf utf8mb4 (is
 $seed = Installer::runSql($pdo, ROOT . '/db/seed.sql');
 T::ok($seed['ok'], 'seed.sql laeuft durch' . ($seed['ok'] ? '' : ': ' . $seed['message']));
 T::same(4, (int)Db::value('SELECT COUNT(*) FROM sources'), '4 Quellen eingetragen');
+T::same(0, (int)Db::value('SELECT COUNT(*) FROM competition_seasons'),
+    'und keine Beispielliga - eine frische Datenbank ist leer');
+
+// Fuer den Import weiter unten braucht es eine Liga. Sie kommt aus derselben
+// Testvorlage wie im SQLite-Lauf, nicht aus den Grunddaten.
+$beispiel = Installer::runSql($pdo, ROOT . '/tests/fixtures/beispielligen.sql');
+T::ok($beispiel['ok'], 'die Testligen lassen sich anlegen' . ($beispiel['ok'] ? '' : ': ' . $beispiel['message']));
 T::same(2, (int)Db::value('SELECT COUNT(*) FROM competition_seasons'), '2 Wettbewerbe eingetragen');
 
 // Ein Fremdschluessel muss auch tatsaechlich verweigern.

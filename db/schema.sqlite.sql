@@ -11,17 +11,14 @@ CREATE TABLE competitions (
   name TEXT NOT NULL,
   gender TEXT NULL,
   age_group TEXT NULL,
-  region TEXT NULL,
-  level TEXT NULL,
-  organizer TEXT NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (slug)
 );
 
 CREATE TABLE seasons (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL, -- '2026/27',
-  start_year INTEGER NOT NULL, -- 2026 = OpenLigaDB leagueSeason,
+  name TEXT NOT NULL,  -- '2026/27'
+  start_year INTEGER NOT NULL,  -- 2026 = OpenLigaDB leagueSeason
   UNIQUE (start_year)
 );
 
@@ -29,8 +26,8 @@ CREATE TABLE competition_seasons (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   competition_id INTEGER NOT NULL,
   season_id INTEGER NOT NULL,
-  shortcut TEXT NOT NULL, -- OpenLigaDB leagueShortcut,
-  name TEXT NOT NULL, -- OpenLigaDB leagueName,
+  shortcut TEXT NOT NULL,  -- OpenLigaDB leagueShortcut
+  name TEXT NOT NULL,  -- OpenLigaDB leagueName
   team_count INTEGER NULL,
   source_url TEXT NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -76,6 +73,7 @@ CREATE TABLE venues (
   name TEXT NOT NULL,
   city TEXT NULL,
   address TEXT NULL,
+  capacity INTEGER UNSIGNED NULL,  -- Fassungsvermoegen, NULL = unbekannt
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (name, city)
 );
@@ -154,7 +152,7 @@ CREATE TABLE sources (
   slug TEXT NOT NULL,
   name TEXT NOT NULL,
   url TEXT NULL,
-  priority INTEGER NOT NULL DEFAULT 100, -- kleiner = vertrauenswuerdiger,
+  priority INTEGER NOT NULL DEFAULT 100,  -- kleiner = vertrauenswuerdiger
   UNIQUE (slug)
 );
 
@@ -205,7 +203,7 @@ CREATE TABLE match_field_sources (
 CREATE TABLE source_mappings (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   source_id INTEGER NOT NULL,
-  entity_type TEXT NOT NULL, -- 'match' | 'team' | 'club' | 'competition_season',
+  entity_type TEXT NOT NULL,  -- 'match' | 'team' | 'club' | 'competition_season'
   internal_id INTEGER NOT NULL,
   external_id TEXT NOT NULL,
   external_url TEXT NULL,
@@ -223,7 +221,7 @@ CREATE TABLE import_batches (
   adapter TEXT NOT NULL,
   filename TEXT NULL,
   row_count INTEGER NOT NULL DEFAULT 0,
-  status TEXT NOT NULL DEFAULT 'pending', -- pending|applied|discarded,
+  status TEXT NOT NULL DEFAULT 'pending',  -- pending|applied|discarded
   admin_note TEXT NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   applied_at TEXT NULL,
@@ -236,8 +234,8 @@ CREATE TABLE import_rows (
   batch_id INTEGER NOT NULL,
   line_no INTEGER NOT NULL DEFAULT 0,
   raw_json TEXT NULL,
-  parsed_json TEXT NULL, -- enthaelt ggf. 'alternatives' bei Konflikten,
-  action TEXT NOT NULL DEFAULT 'unchanged', -- create|update|unchanged|conflict|skip,
+  parsed_json TEXT NULL,  -- enthaelt ggf. 'alternatives' bei Konflikten
+  action TEXT NOT NULL DEFAULT 'unchanged',  -- create|update|unchanged|conflict|skip
   target_match_id INTEGER NULL,
   status TEXT NOT NULL DEFAULT 'pending',
   message TEXT NULL,

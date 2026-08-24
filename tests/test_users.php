@@ -260,3 +260,25 @@ T::same('berta@example.org', (string)Users::find($bertaId)['email'], 'die Adress
 T::ok(Users::validate(['username' => 'dora', 'password' => 'einLangesPasswort',
     'password_repeat' => 'einLangesPasswort', 'role' => Users::ROLE_USER]) !== [],
     'ohne Adresse laesst sich niemand neu anlegen');
+
+
+T::group('Anmeldung - es gibt nur den Weg ueber ein Konto');
+
+// Frueher galt ersatzweise das Passwort aus config.php, solange kein
+// Verwalter angelegt war. Der Installer legt den ersten inzwischen selbst an;
+// eine zweite Tuer waere nur noch eine zweite Tuer.
+$auth = new ReflectionMethod(Auth::class, 'login');
+
+T::same(2, $auth->getNumberOfParameters(),
+    'Auth::login nimmt nur Benutzername und Passwort - keine Konfiguration mehr');
+T::same(false, method_exists(Auth::class, 'isBootstrap'),
+    'einen Notzugang gibt es nicht mehr');
+
+$quelle = (string)file_get_contents(ROOT . '/public_html/lib/auth.php');
+T::same(false, str_contains($quelle, 'admin_password_hash'),
+    'das Passwort aus config.php taucht in der Anmeldung nicht mehr auf');
+
+// Es schuetzt weiterhin update.php - dort mit Absicht, weil unter Umstaenden
+// gerade die Benutzertabelle das ist, was migriert werden muss.
+T::ok(str_contains((string)file_get_contents(ROOT . '/public_html/update.php'), 'admin_password_hash'),
+    'update.php benutzt es weiter');

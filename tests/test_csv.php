@@ -6,28 +6,6 @@ declare(strict_types=1);
  * Das ist der Weg fuer die En-Bloc-Korrektur.
  */
 
-/** Legt einen Bestand an und gibt Wettbewerb und Zuordner zurueck. */
-function csv_fixture(): array
-{
-    fresh_db();
-
-    $parsed = (new KickerJsonAdapter())->parse(
-        file_get_contents(ROOT . '/tests/fixtures/kicker-sample.json')
-    );
-
-    $matcher = new TeamMatcher();
-    foreach ($matcher->unresolved($parsed['rows']) as $entry) {
-        $matcher->createTeam($entry['name']);
-    }
-
-    $csId = competition_season_id('frlw');
-    $kicker = Db::one('SELECT id, priority FROM sources WHERE slug = ?', ['kicker']);
-    $diff = (new Differ($csId, (int)$kicker['priority'], 'Europe/Berlin'))->compare($parsed['rows'], $matcher);
-    (new Applier($csId, (int)$kicker['id'], 'Europe/Berlin'))->apply($diff['rows'], $matcher);
-
-    return [$csId, $matcher];
-}
-
 T::group('CSV - Export');
 
 [$csId, $matcher] = csv_fixture();

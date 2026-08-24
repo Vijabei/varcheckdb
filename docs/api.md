@@ -3,6 +3,15 @@
 Alle Antworten sind JSON, UTF-8. Mit `?download=1` wird die Antwort als Datei
 angeboten statt im Browser angezeigt.
 
+Der Spielplan gibt es zusaetzlich als CSV — `?format=csv` liefert genau die
+Spalten, die der Import wieder annimmt. Damit ist der Rundlauf
+*herunterladen, in der Tabellenkalkulation aendern, zurueckspielen* auch ohne
+Anmeldung moeglich:
+
+```text
+GET api/v1/competitions/{slug}/seasons/{jahr}/matches?format=csv&download=1
+```
+
 Ohne `mod_rewrite` ist jede Adresse auch als `index.php?route=…` erreichbar.
 
 ## Eigenes Format
@@ -18,6 +27,13 @@ wirken die Filter `?round=`, `?status=`, `?from=` und `?to=`.
 
 Anstosszeiten stehen doppelt: `kickoff` in der eingestellten Ortszeit,
 `kickoffUtc` in UTC. `kickoffConfirmed` sagt, ob die Ansetzung verbindlich ist.
+
+Je Spiel kommen `venue`, `venueCapacity` und `spectators` dazu; unbekannt ist
+`null`. Siehe [spielorte.md](spielorte.md).
+
+Am Wettbewerb gab es frueher `region` und `level`. Beide sind entfallen: sie
+waren beim Anlegen auszufuellen, ohne je gelesen zu werden. Diese Datenbank
+bildet keine Gesamtstruktur des Spielbetriebs ab, sondern Spiele.
 
 ## OpenLigaDB-kompatibel
 
@@ -55,7 +71,9 @@ vergleicht bei jedem Lauf dagegen.
 Quellen. Das Feld bleibt vorhanden, damit Auswertungen nicht auf einen
 fehlenden Schluessel stossen.
 
-`location` ist `null`, solange keine Spielstaette erfasst ist.
+`location` ist `null`, solange am Spiel kein Spielort eingetragen ist.
+`numberOfViewers` ist `null`, solange keine Zuschauerzahl erfasst ist — nie 0,
+denn 0 waere eine Aussage.
 
 `matchResults` ist bei einem noch nicht gespielten Spiel leer, wie im
 Original. Bei einem gespielten Spiel stehen immer beide Eintraege in fester
@@ -72,8 +90,8 @@ Die beiden verworfenen Alternativen und warum:
 - **0:0 einsetzen**: waeren erfundene Daten. Ein Spiel, das zur Pause 1:0
   stand, stuende damit falsch in der oeffentlichen Ausgabe.
 
-Fehlende Halbzeitstaende lassen sich im Adminbereich oder ueber den
-CSV-Ruecklauf nachtragen; danach stehen dort Zahlen statt `null`.
+Fehlende Halbzeitstaende lassen sich unter *Meine Ligen -> Spielplan* oder
+ueber den CSV-Ruecklauf nachtragen; danach stehen dort Zahlen statt `null`.
 
 ### Abgleich mit dem Original
 

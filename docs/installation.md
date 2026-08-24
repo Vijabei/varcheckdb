@@ -179,6 +179,16 @@ php -r 'echo password_hash("dein-passwort", PASSWORD_DEFAULT), "\n";'
 Den Hash in `config.php` bei `admin_password_hash` eintragen, Datenbankzugang
 ergaenzen, `install.php` loeschen.
 
+`seed.sql` legt **nur** die Quellen an, ohne die der Import nicht arbeiten
+kann. Ligen, Saisons, Mannschaften und Spielorte kommen nicht mit: eine frisch
+eingerichtete Datenbank ist leer und enthaelt keine Beispieldaten, die
+hinterher wieder wegzuraeumen waeren. Die erste Liga legst du unter
+*Meine Ligen -> Ligen* an, siehe [ligen.md](ligen.md).
+
+Ein Benutzerkonto brauchst du in diesem Fall ebenfalls von Hand — den Weg
+beschreibt [benutzer.md](benutzer.md) unter *Ausgesperrt*. Beim Installer
+entfaellt das, er legt den ersten Verwalter selbst an.
+
 ## Lokale Entwicklung
 
 ```bash

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Gemeinsamer Einstieg fuer index.php und den Adminbereich.
+ * Gemeinsamer Einstieg fuer alle Seiten.
  *
  * Laedt die Konfiguration, stellt die Datenbankverbindung her und bringt
  * die Klassen mit, die beide Seiten brauchen.

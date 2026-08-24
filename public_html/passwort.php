@@ -12,11 +12,11 @@ declare(strict_types=1);
  * Mail, auf die jemand vergeblich wartet, ist schlimmer als eine Absage.
  */
 
-require_once __DIR__ . '/../lib/app.php';
-require_once __DIR__ . '/../lib/users.php';
-require_once __DIR__ . '/../lib/mail.php';
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/layout.php';
+require_once __DIR__ . '/lib/app.php';
+require_once __DIR__ . '/lib/users.php';
+require_once __DIR__ . '/lib/mail.php';
+require_once __DIR__ . '/lib/auth.php';
+require_once __DIR__ . '/lib/layout.php';
 
 $config = App::boot();
 Auth::start();
@@ -130,7 +130,7 @@ admin_head('Passwort', $config);
 
     <?php if ($fertig): ?>
       <p>Das Passwort ist gesetzt. Du kannst dich jetzt anmelden.</p>
-      <div class="actions"><a href="index.php"><button type="button">Zur Anmeldung</button></a></div>
+      <div class="actions"><a href="login.php"><button type="button">Zur Anmeldung</button></a></div>
 
     <?php elseif ($konto !== null): ?>
       <p class="note">Neues Passwort für <strong><?= e($konto['username']) ?></strong>.</p>
@@ -164,7 +164,7 @@ admin_head('Passwort', $config);
 
         <div class="actions">
           <button type="submit">Verweis anfordern</button>
-          <a href="index.php" class="note">Zurück</a>
+          <a href="login.php" class="note">Zurück</a>
         </div>
       </form>
       <p class="note">Nur bestätigte Adressen bekommen einen Verweis. Ist deine noch

@@ -1,16 +1,15 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../lib/users.php';
+require_once __DIR__ . '/users.php';
 
 /**
- * Anmeldung am Adminbereich.
+ * Anmeldung.
  *
- * Solange kein aktiver Verwalter angelegt ist, gilt das Passwort aus
- * config.php - damit kommt man nach der Installation oder nach der Migration
- * herein und legt den ersten Benutzer an. Sobald ein aktiver Verwalter
- * besteht, verliert es seine Gueltigkeit. Es ist ein Weg fuer den Anfang,
- * keine dauerhafte Hintertuer.
+ * Es gibt genau einen Weg herein: ein Benutzerkonto. Frueher galt ersatzweise
+ * das Passwort aus config.php, solange noch kein Verwalter angelegt war -
+ * gedacht als Starthilfe nach der Installation. Der Installer legt den ersten
+ * Verwalter inzwischen selbst an, damit war es eine Tuer ohne Zweck.
  *
  * Ausgesperrt? Dann hilft ein neuer Passwort-Hash direkt in der Datenbank;
  * der Weg steht in docs/benutzer.md.
@@ -30,38 +29,21 @@ final class Auth
         }
     }
 
-    /**
-     * Meldet an. Der Benutzername darf leer bleiben, solange der Notzugang
-     * aus config.php gilt.
-     */
-    public static function login(string $username, string $password, array $config): bool
+    /** Meldet an. Ohne passendes Konto gibt es keinen Zugang. */
+    public static function login(string $username, string $password): bool
     {
         self::start();
 
-        if (Users::hasActiveAdmin()) {
-            $user = Users::authenticate($username, $password);
+        $user = Users::authenticate($username, $password);
 
-            if ($user === null) {
-                return false;
-            }
-
-            return self::establish($user['username'], $user['role'], (int)$user['id']);
-        }
-
-        // Erstzugang: das Passwort aus der Konfiguration.
-        $hash = (string)($config['admin_password_hash'] ?? '');
-
-        if ($hash === '' || !password_verify($password, $hash)) {
-            // Gleiche Laufzeit, egal ob ein Hash hinterlegt ist.
-            password_verify($password, '$2y$10$ungueltigungueltigungueltigungueltigungueltigungueltigun');
-
+        if ($user === null) {
             return false;
         }
 
-        return self::establish('erstzugang', Users::ROLE_ADMIN, null);
+        return self::establish($user['username'], $user['role'], (int)$user['id']);
     }
 
-    private static function establish(string $username, string $role, ?int $userId): bool
+    private static function establish(string $username, string $role, int $userId): bool
     {
         session_regenerate_id(true);
 
@@ -103,12 +85,6 @@ final class Auth
         return $_SESSION[self::SESSION_KEY]['user_id'] ?? null;
     }
 
-    /** Meldet sich der Erstzugang aus der Konfiguration an? */
-    public static function isBootstrap(): bool
-    {
-        return self::isLoggedIn() && self::userId() === null;
-    }
-
     public static function can(string $capability): bool
     {
         return self::isLoggedIn() && Users::can(self::role(), $capability);
@@ -125,24 +101,25 @@ final class Auth
     public static function require(): void
     {
         if (!self::isLoggedIn()) {
-            header('Location: index.php?login=1');
+            header('Location: ../login.php');
             exit;
         }
 
         // Ein Konto, das waehrend der Sitzung abgeschaltet oder entfernt
-        // wurde, soll nicht bis zum Abmelden weiterarbeiten koennen.
+        // wurde, soll nicht bis zum Abmelden weiterarbeiten koennen. Eine
+        // Sitzung ohne Konto stammt noch vom fruehreren Notzugang und gilt
+        // ebenfalls nicht mehr.
         $userId = self::userId();
-        if ($userId !== null) {
-            $user = Users::find($userId);
-            if ($user === null || (int)$user['active'] !== 1) {
-                self::logout();
-                header('Location: index.php?gesperrt=1');
-                exit;
-            }
+        $user = $userId === null ? null : Users::find($userId);
 
-            // Eine geaenderte Rolle greift sofort.
-            $_SESSION[self::SESSION_KEY]['role'] = $user['role'];
+        if ($user === null || (int)$user['active'] !== 1) {
+            self::logout();
+            header('Location: ../login.php?gesperrt=1');
+            exit;
         }
+
+        // Eine geaenderte Rolle greift sofort.
+        $_SESSION[self::SESSION_KEY]['role'] = $user['role'];
     }
 
     /** Verlangt eine bestimmte Berechtigung. */
@@ -158,8 +135,8 @@ final class Auth
                 . '<h1>Nicht erlaubt</h1><div class="card"><p>Dafür fehlt deiner Rolle '
                 . '<strong>' . htmlspecialchars(Users::ROLES[self::role()] ?? '—', ENT_QUOTES) . '</strong> '
                 . 'die Berechtigung.</p><p class="note">Wende dich an jemanden mit der Rolle '
-                . 'Verwaltung.</p><div class="actions"><a href="index.php">'
-                . '<button type="button">Zur Übersicht</button></a></div></div></main>';
+                . 'Verwaltung.</p><div class="actions"><a href="../meine/">'
+                . '<button type="button">Zu meinen Ligen</button></a></div></div></main>';
             admin_foot();
             exit;
         }

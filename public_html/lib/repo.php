@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * Lesezugriffe auf den Spielbestand.
  *
- * Beide API-Fassungen und der Adminbereich greifen hierauf zu; es gibt nur
+ * Beide API-Fassungen und die angemeldeten Seiten greifen hierauf zu; es gibt nur
  * eine Datenhaltung und nur eine Stelle, an der gelesen wird.
  */
 final class Repo
@@ -14,7 +14,7 @@ final class Repo
     {
         return Db::all(
             'SELECT cs.id, cs.shortcut, cs.name, cs.team_count,
-                    c.slug, c.name AS competition_name, c.gender, c.age_group, c.region, c.level,
+                    c.slug, c.name AS competition_name, c.gender, c.age_group,
                     s.name AS season_name, s.start_year
                FROM competition_seasons cs
                JOIN competitions c ON c.id = cs.competition_id
@@ -27,7 +27,7 @@ final class Repo
     public static function competitionSeason(string $key, ?int $startYear = null): ?array
     {
         $sql = 'SELECT cs.id, cs.shortcut, cs.name, cs.team_count,
-                       c.slug, c.name AS competition_name, c.gender, c.region, c.level,
+                       c.slug, c.name AS competition_name, c.gender,
                        s.name AS season_name, s.start_year
                   FROM competition_seasons cs
                   JOIN competitions c ON c.id = cs.competition_id
@@ -57,7 +57,7 @@ final class Repo
         $sql = 'SELECT m.*, r.number AS round_number, r.name AS round_name,
                        h.name AS home_name, h.short_name AS home_short, h.logo_url AS home_logo,
                        a.name AS away_name, a.short_name AS away_short, a.logo_url AS away_logo,
-                       v.name AS venue_name, v.city AS venue_city
+                       v.name AS venue_name, v.city AS venue_city, v.capacity AS venue_capacity
                   FROM matches m
                   JOIN rounds r ON r.id = m.round_id
                   JOIN teams h  ON h.id = m.home_team_id
@@ -188,7 +188,7 @@ final class Repo
         return $rows;
     }
 
-    /** Ein paar Zahlen fuer die Startseite und den Adminbereich. */
+    /** Ein paar Zahlen fuer die Startseite und die Uebersichten. */
     public static function stats(): array
     {
         return [

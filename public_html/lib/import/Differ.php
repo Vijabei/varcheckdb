@@ -5,7 +5,7 @@ declare(strict_types=1);
  * Vergleicht normalisierte Importzeilen mit dem Datenbestand.
  *
  * Der Differ schreibt nichts. Er erzeugt nur die Vorschau, die im
- * Adminbereich bestaetigt wird - das ist der Kern des Prinzips, dass ein
+ * Vorschau bestaetigt wird - das ist der Kern des Prinzips, dass ein
  * Import nie unmittelbar Fakten setzt.
  *
  * Liefert die Quelle fuer eine Paarung mehrere Termine, wird der vom Adapter
@@ -25,12 +25,14 @@ final class Differ
     private const FIELDS = [
         'kickoff_utc', 'kickoff_is_confirmed',
         'home_goals', 'away_goals', 'home_goals_ht', 'away_goals_ht',
-        'status', 'note',
+        'status', 'venue_id', 'spectators', 'note',
     ];
 
-    // venue fehlt hier bewusst: die Spielstaette braucht eine Aufloesung von
-    // Name auf venues.id, und der Differ schreibt nichts. Solange sie in den
-    // Importdateien nur vereinzelt auftaucht, waere das Aufwand ohne Ertrag.
+    // Der Spielort kommt als Name herein und muss auf venues.id aufgeloest
+    // werden. Der Differ schlaegt dafuer nur nach - anlegen wuerde heissen,
+    // dass eine Vorschau bereits schreibt. Ist der Ort unbekannt, sagt die
+    // Vorschau das und laesst das Feld offen; angelegt wird er unter
+    // Spielorte, danach greift der naechste Import.
 
     public function __construct(
         private readonly int $competitionSeasonId,
@@ -91,12 +93,26 @@ final class Differ
 
         $existing = $this->findMatch($row, $homeId, $awayId);
         $incoming = $this->incomingValues($row);
+        $hinweis = null;
+
+        if ($row->venue !== null && trim($row->venue) !== '') {
+            $ort = Venues::byName($row->venue);
+
+            if ($ort !== null) {
+                $incoming['venue_id'] = (int)$ort['id'];
+            } else {
+                $hinweis = sprintf(
+                    'Spielort "%s" ist nicht angelegt; das Feld bleibt offen.',
+                    trim($row->venue)
+                );
+            }
+        }
 
         if ($existing === null) {
             return array_merge($base, [
                 'action'  => 'create',
                 'changes' => $incoming,
-                'message' => null,
+                'message' => $hinweis,
             ]);
         }
 
@@ -121,9 +137,7 @@ final class Differ
             'match_id'  => (int)$existing['id'],
             'changes'   => $changes,
             'protected' => $protected,
-            'message'   => $protected === []
-                ? null
-                : sprintf('%d Feld(er) bleiben unveraendert, weil sie manuell bestaetigt sind.', count($protected)),
+            'message'   => self::meldung($hinweis, $protected),
         ]);
     }
 
@@ -151,11 +165,33 @@ final class Differ
         if ($row->status !== null && $row->status !== '') {
             $values['status'] = $row->status;
         }
+        if ($row->spectators !== null) {
+            $values['spectators'] = $row->spectators;
+        }
         if ($row->note !== null) {
             $values['note'] = $row->note;
         }
 
         return array_intersect_key($values, array_flip(self::FIELDS));
+    }
+
+    /** Setzt die Meldungen einer Zeile zu einem Satz zusammen. */
+    private static function meldung(?string $hinweis, array $protected): ?string
+    {
+        $teile = [];
+
+        if ($protected !== []) {
+            $teile[] = sprintf(
+                '%d Feld(er) bleiben unveraendert, weil sie manuell bestaetigt sind.',
+                count($protected)
+            );
+        }
+
+        if ($hinweis !== null) {
+            $teile[] = $hinweis;
+        }
+
+        return $teile === [] ? null : implode(' ', $teile);
     }
 
     private function findMatch(ImportRow $row, int $homeId, int $awayId): ?array

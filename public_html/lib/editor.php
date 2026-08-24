@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Aenderungen von Hand im Adminbereich.
+ * Aenderungen von Hand.
  *
  * Geht bewusst denselben Weg wie der Import: jede Aenderung landet im
  * change_log, und jedes geaenderte Feld wird in match_field_sources als
@@ -16,7 +16,7 @@ final class Editor
     public const FIELDS = [
         'kickoff_utc', 'kickoff_is_confirmed',
         'home_goals', 'away_goals', 'home_goals_ht', 'away_goals_ht',
-        'status', 'note',
+        'status', 'venue_id', 'spectators', 'note',
     ];
 
     /**

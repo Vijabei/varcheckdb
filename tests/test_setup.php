@@ -52,8 +52,19 @@ T::same(0, count(array_filter($statements, fn(string $s): bool => trim($s) === '
 T::ok(str_contains(implode("\n", $statements), 'FOREIGN KEY'), 'Fremdschluessel bleiben erhalten');
 
 $seed = Installer::statements((string)file_get_contents(ROOT . '/db/seed.sql'));
-T::same(5, count($seed), 'die Grunddaten bestehen aus 5 Anweisungen');
-T::ok(str_contains($seed[0], 'INSERT INTO sources'), 'die erste legt die Quellen an');
+T::same(1, count($seed), 'die Grunddaten bestehen aus einer Anweisung');
+T::ok(str_contains($seed[0], 'INSERT INTO sources'), 'sie legt die Quellen an');
+
+// Eine frische Installation soll leer sein. Beispieldaten muesste hinterher
+// jemand wegraeumen - und wer sie stehen laesst, hat eine Liga in seiner
+// oeffentlichen Schnittstelle, die es nie gab.
+foreach (['competitions', 'seasons', 'competition_seasons', 'teams', 'clubs',
+          'matches', 'rounds', 'venues', 'users'] as $tabelle) {
+    T::ok(
+        !str_contains(implode("\n", $seed), 'INTO ' . $tabelle),
+        sprintf('die Grunddaten legen nichts in %s an', $tabelle)
+    );
+}
 
 T::group('Installer - Semikolon an heiklen Stellen');
 

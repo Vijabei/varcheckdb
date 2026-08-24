@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * Herkunft und Verbindlichkeit einzelner Spielfelder.
  *
- * Wird sowohl vom Import als auch von der manuellen Pflege im Adminbereich
+ * Wird sowohl vom Import als auch von der manuellen Pflege am Spielplan
  * benutzt - beide Wege muessen denselben Eintrag schreiben, sonst greift der
  * Ueberschreibschutz nur auf einem von beiden.
  */

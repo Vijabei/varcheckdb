@@ -1,4 +1,4 @@
-# Der Bereich des Webadmins hat einen eigenen Einstieg und wird nicht umgeschrieben.
+# Der eigene Bereich hat einen eigenen Einstieg und wird nicht umgeschrieben.
 <IfModule mod_rewrite.c>
     RewriteEngine Off
 </IfModule>

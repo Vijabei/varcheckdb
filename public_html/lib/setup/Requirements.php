@@ -5,7 +5,7 @@ declare(strict_types=1);
  * Prueft, ob die Umgebung fuer den Betrieb taugt.
  *
  * Bewusst als eigene Klasse und nicht im Installer-Formular: so laesst sich
- * die Pruefung testen und spaeter auch im Adminbereich anzeigen, wenn nach
+ * die Pruefung testen und spaeter auch in der Verwaltung anzeigen, wenn nach
  * einem PHP-Update etwas fehlt.
  *
  * Drei Stufen:

@@ -17,7 +17,7 @@ final class CsvAdapter implements Adapter
     public const COLUMNS = [
         'match_id', 'round', 'kickoff_date', 'kickoff_time', 'kickoff_confirmed',
         'home', 'away', 'home_goals', 'away_goals', 'home_goals_ht', 'away_goals_ht',
-        'status', 'venue', 'note',
+        'status', 'venue', 'spectators', 'note',
     ];
 
     /** Spalten, ohne die eine Zeile nicht zuzuordnen ist. */
@@ -86,6 +86,7 @@ final class CsvAdapter implements Adapter
                 awayGoalsHt: self::int($data['away_goals_ht'] ?? ''),
                 status: ($data['status'] ?? '') !== '' ? $data['status'] : null,
                 venue: ($data['venue'] ?? '') !== '' ? $data['venue'] : null,
+                spectators: self::int($data['spectators'] ?? ''),
                 note: ($data['note'] ?? '') !== '' ? $data['note'] : null,
                 matchId: self::int($data['match_id'] ?? ''),
                 lineNo: $index + 2,
@@ -219,6 +220,7 @@ final class CsvAdapter implements Adapter
                 $match['away_goals_ht'] ?? '',
                 $match['status'] ?? '',
                 $match['venue_name'] ?? '',
+                $match['spectators'] ?? '',
                 $match['note'] ?? '',
             ], $delimiter, '"', '\\');
         }

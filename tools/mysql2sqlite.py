@@ -26,9 +26,17 @@ PRAGMA foreign_keys = ON;
 def convert_table(name: str, body: str) -> tuple[str, list[str]]:
     """Wandelt einen CREATE-TABLE-Rumpf um und zieht Sekundaerindizes heraus."""
     columns: list[str] = []
+    # Zeilenkommentare je Spalte, damit das Trennkomma davor landet und nicht
+    # dahinter - sonst frisst der Kommentar das Komma.
+    comments: list[str] = []
     indexes: list[str] = []
 
     for line in body.split('\n'):
+        line = line.strip()
+        comment = ''
+        if '--' in line:
+            line, _, comment = line.partition('--')
+            comment = '  -- ' + comment.strip()
         line = line.strip().rstrip(',')
         if not line:
             continue
@@ -42,6 +50,7 @@ def convert_table(name: str, body: str) -> tuple[str, list[str]]:
         match = re.match(r'^UNIQUE KEY\s+\w+\s*\((.+)\)$', line)
         if match:
             columns.append(f'  UNIQUE ({match.group(1)})')
+            comments.append('')
             continue
 
         # Der Primaerschluessel steckt in SQLite in der Spaltendefinition.
@@ -50,6 +59,7 @@ def convert_table(name: str, body: str) -> tuple[str, list[str]]:
 
         if line.startswith('CONSTRAINT '):
             columns.append('  ' + line)
+            comments.append('')
             continue
 
         # Ab hier: normale Spalte.
@@ -65,8 +75,14 @@ def convert_table(name: str, body: str) -> tuple[str, list[str]]:
         line = line.replace('DATETIME', 'TEXT')
         line = line.replace(' ON UPDATE CURRENT_TIMESTAMP', '')
         columns.append('  ' + re.sub(r'\s+', ' ', line))
+        comments.append(comment)
 
-    return 'CREATE TABLE %s (\n%s\n);' % (name, ',\n'.join(columns)), indexes
+    lines = [
+        col + (',' if i < len(columns) - 1 else '') + comments[i]
+        for i, col in enumerate(columns)
+    ]
+
+    return 'CREATE TABLE %s (\n%s\n);' % (name, '\n'.join(lines)), indexes
 
 
 def main() -> int:

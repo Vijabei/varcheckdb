@@ -53,8 +53,7 @@ $vorher = count(Repo::competitions());
 
 $id = Competitions::create([
     'slug' => 'mrlw', 'shortcut' => 'mrlw', 'name' => 'Maenner-Regionalliga West',
-    'gender' => 'men', 'age_group' => 'senior', 'region' => 'West',
-    'level' => 'Regionalliga', 'organizer' => 'WDFV', 'start_year' => 2026, 'team_count' => 18,
+    'gender' => 'men', 'age_group' => 'senior', 'start_year' => 2026, 'team_count' => 18,
 ]);
 
 T::ok($id > 0, 'der Wettbewerb wird angelegt');
@@ -172,29 +171,30 @@ T::group('Competitions - Entfernen bricht sauber ab');
 T::same([], Competitions::remove(999999), 'ein unbekannter Wettbewerb ergibt nichts');
 T::same(2, (int)Db::value('SELECT COUNT(*) FROM competition_seasons'), 'und aendert nichts');
 
-T::group('Competitions - die Grunddaten bestehen die eigene Pruefung');
+T::group('Competitions - die dokumentierte Benennung besteht die eigene Pruefung');
 
 // Klingt selbstverstaendlich, war es nicht: die Kurzform darf laenger sein
 // als das Kuerzel. 'frauen-regionalliga-west' hat 24 Zeichen und ist genau
 // richtig so, waehrend ein Kuerzel kurz bleiben soll - es steht in jeder
 // Adresse der oeffentlichen Schnittstelle.
-fresh_db();
+//
+// Geprueft werden die Beispiele aus docs/ligen.md: was dort als Vorbild
+// steht, muss die Anwendung auch annehmen.
+fresh_db(false);
 
-foreach (Db::all(
-    'SELECT c.slug, cs.shortcut, c.name, s.start_year
-       FROM competition_seasons cs
-       JOIN competitions c ON c.id = cs.competition_id
-       JOIN seasons s      ON s.id = cs.season_id'
-) as $vorhanden) {
-    $fehler = Competitions::validate([
-        'slug'       => $vorhanden['slug'],
-        'shortcut'   => $vorhanden['shortcut'],
-        'name'       => $vorhanden['name'],
-        'start_year' => (int)$vorhanden['start_year'],
-    ], (int)Db::value('SELECT id FROM competition_seasons WHERE shortcut = ?', [$vorhanden['shortcut']]));
+$beispiele = [
+    ['frauen-regionalliga-west',  'frlw', 'Frauen-Regionalliga West'],
+    ['maenner-regionalliga-west', 'mrlw', 'Maenner-Regionalliga West'],
+    ['frauen-westfalenliga',      'fwfl', 'Frauen-Westfalenliga'],
+];
 
-    T::same([], $fehler, sprintf('"%s" / "%s" aus seed.sql wird angenommen',
-        $vorhanden['slug'], $vorhanden['shortcut']));
+foreach ($beispiele as [$slug, $shortcut, $name]) {
+    T::same([], Competitions::validate([
+        'slug'       => $slug,
+        'shortcut'   => $shortcut,
+        'name'       => $name,
+        'start_year' => 2026,
+    ]), sprintf('"%s" / "%s" aus docs/ligen.md wird angenommen', $slug, $shortcut));
 }
 
 T::group('Competitions - Kurzform darf laenger sein als das Kuerzel');

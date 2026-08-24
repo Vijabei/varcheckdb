@@ -7,8 +7,8 @@ require_once __DIR__ . '/../lib/app.php';
 require_once __DIR__ . '/../lib/repo.php';
 require_once __DIR__ . '/../lib/competitions.php';
 require_once __DIR__ . '/../lib/access.php';
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/layout.php';
+require_once __DIR__ . '/../lib/auth.php';
+require_once __DIR__ . '/../lib/layout.php';
 
 $config = App::boot();
 Auth::require();
@@ -31,9 +31,6 @@ if (($_POST['action'] ?? '') === 'create' && Auth::tokenValid()) {
         'name'       => trim((string)($_POST['name'] ?? '')),
         'gender'     => (string)($_POST['gender'] ?? ''),
         'age_group'  => trim((string)($_POST['age_group'] ?? '')),
-        'region'     => trim((string)($_POST['region'] ?? '')),
-        'level'      => trim((string)($_POST['level'] ?? '')),
-        'organizer'  => trim((string)($_POST['organizer'] ?? '')),
         'start_year' => (int)($_POST['start_year'] ?? 0),
         'team_count' => (string)($_POST['team_count'] ?? ''),
     ];
@@ -407,21 +404,6 @@ if ($rechteLiga !== null && !Access::mayManage(Auth::userId(), Auth::role(), $re
         <label for="team_count">Mannschaften</label>
         <input type="text" id="team_count" name="team_count" value="<?= e($eingabe['team_count'] ?? '') ?>"
                placeholder="16">
-      </div>
-    </div>
-
-    <div style="display:flex;gap:1rem;flex-wrap:wrap">
-      <div style="flex:1;min-width:8rem">
-        <label for="region">Region</label>
-        <input type="text" id="region" name="region" value="<?= e($eingabe['region'] ?? '') ?>" placeholder="West">
-      </div>
-      <div style="flex:1;min-width:8rem">
-        <label for="level">Ebene</label>
-        <input type="text" id="level" name="level" value="<?= e($eingabe['level'] ?? '') ?>" placeholder="Regionalliga">
-      </div>
-      <div style="flex:1;min-width:8rem">
-        <label for="organizer">Veranstalter</label>
-        <input type="text" id="organizer" name="organizer" value="<?= e($eingabe['organizer'] ?? '') ?>" placeholder="WDFV">
       </div>
     </div>
 

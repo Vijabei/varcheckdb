@@ -131,9 +131,6 @@ final class Competitions
                     'name'      => trim((string)$input['name']),
                     'gender'    => $input['gender'] ?? null,
                     'age_group' => $input['age_group'] ?? null,
-                    'region'    => $input['region'] ?? null,
-                    'level'     => $input['level'] ?? null,
-                    'organizer' => $input['organizer'] ?? null,
                     'created_at' => gmdate('Y-m-d H:i:s'),
                 ]);
             }

@@ -64,7 +64,7 @@ Installationen um. Sie prüft zuerst auf doppelte Namen und beschreibt, wie
 zusammengeführt wird; ohne Zusammenführung bricht der Umbau ab, statt
 stillschweigend etwas zu verwerfen.
 
-**Wettbewerbe verwalten.** Anlegen und Entfernen im Adminbereich. Das
+**Wettbewerbe verwalten.** Anlegen und Entfernen unter „Meine Ligen". Das
 Entfernen zeigt vorher, was daran hängt — Spiele, Spieltage,
 Herkunftsvermerke, Importvorgänge — und weist gesondert aus, wie viele davon
 von Hand bestätigte Angaben sind: die stehen nach dem Entfernen nirgends mehr,

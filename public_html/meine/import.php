@@ -11,6 +11,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/../lib/app.php';
 require_once __DIR__ . '/../lib/repo.php';
 require_once __DIR__ . '/../lib/access.php';
+require_once __DIR__ . '/../lib/normalize.php';
+require_once __DIR__ . '/../lib/venues.php';
 require_once __DIR__ . '/../lib/import/Adapter.php';
 require_once __DIR__ . '/../lib/import/AdapterFactory.php';
 require_once __DIR__ . '/../lib/import/KickerJsonAdapter.php';
@@ -21,8 +23,8 @@ require_once __DIR__ . '/../lib/import/FieldSource.php';
 require_once __DIR__ . '/../lib/import/Differ.php';
 require_once __DIR__ . '/../lib/import/Applier.php';
 require_once __DIR__ . '/../lib/import/Batch.php';
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/layout.php';
+require_once __DIR__ . '/../lib/auth.php';
+require_once __DIR__ . '/../lib/layout.php';
 
 $config = App::boot();
 Auth::require();
@@ -374,7 +376,32 @@ admin_nav('import.php', $config);
 <?php else: ?>
 
   <?php
+  /**
+   * Ein Feldwert, wie er in der Vorschau stehen soll.
+   *
+   * venue_id ist die einzige Stelle, an der der Bestand eine Kennziffer
+   * fuehrt und die Vorschau einen Namen zeigen muss - eine nackte 5 sagt
+   * beim Bestaetigen niemandem etwas.
+   */
+  $wert = static function (string $field, mixed $value): string {
+      if ($value === null || $value === '') {
+          return '—';
+      }
+
+      if ($field === 'venue_id') {
+          $ort = Venues::find((int)$value);
+
+          return $ort === null ? '(entfernt)' : (string)$ort['name'];
+      }
+
+      return (string)$value;
+  };
+
   $summary = $diff['summary'];
+  $hinweise = array_values(array_filter(
+      $diff['rows'],
+      static fn(array $r): bool => ($r['message'] ?? null) !== null && $r['action'] !== 'skip'
+  ));
   $abweichend = array_values(array_filter($diff['rows'], fn(array $r): bool => $r['alternatives'] !== []));
   $changed = array_values(array_filter($diff['rows'], fn(array $r): bool => in_array($r['action'], ['create', 'update'], true)));
   $protected = array_values(array_filter($diff['rows'], fn(array $r): bool => ($r['protected'] ?? []) !== []));
@@ -448,13 +475,36 @@ admin_nav('import.php', $config);
               <tr>
                 <td><?= e($row['home']) ?> &ndash; <?= e($row['away']) ?></td>
                 <td><code><?= e($field) ?></code></td>
-                <td><?= e((string)$change['from']) ?></td>
-                <td><?= e((string)$change['to']) ?></td>
+                <td><?= e($wert($field, $change['from'])) ?></td>
+                <td><?= e($wert($field, $change['to'])) ?></td>
               </tr>
             <?php endforeach; ?>
           <?php endforeach; ?>
           </tbody>
         </table>
+      </div>
+    <?php endif; ?>
+
+    <?php if ($hinweise !== []): ?>
+      <div class="card">
+        <h2 style="margin-top:0">Hinweise</h2>
+        <p class="note">Diese Zeilen werden übernommen, aber nicht vollständig &ndash;
+           meist, weil etwas fehlt, das erst angelegt werden muss.</p>
+        <table>
+          <thead><tr><th>ST</th><th>Paarung</th><th>Hinweis</th></tr></thead>
+          <tbody>
+          <?php foreach (array_slice($hinweise, 0, 30) as $row): ?>
+            <tr>
+              <td><?= (int)$row['round'] ?></td>
+              <td><?= e($row['home']) ?> &ndash; <?= e($row['away']) ?></td>
+              <td class="note"><?= e((string)$row['message']) ?></td>
+            </tr>
+          <?php endforeach; ?>
+          </tbody>
+        </table>
+        <?php if (count($hinweise) > 30): ?>
+          <p class="note">… und <?= count($hinweise) - 30 ?> weitere.</p>
+        <?php endif; ?>
       </div>
     <?php endif; ?>
 
@@ -478,8 +528,8 @@ admin_nav('import.php', $config);
                 <?php else: ?>
                   <?php foreach ($row['changes'] as $field => $change): ?>
                     <code><?= e($field) ?></code>
-                    <?= e($change['from'] === null ? '—' : (string)$change['from']) ?>
-                    &rarr; <?= e((string)$change['to']) ?><br>
+                    <?= e($wert($field, $change['from'])) ?>
+                    &rarr; <?= e($wert($field, $change['to'])) ?><br>
                   <?php endforeach; ?>
                 <?php endif; ?>
               </td>

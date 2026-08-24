@@ -44,7 +44,8 @@ Kennung `varcheckdb-import/1`. Für vollständige Spielpläne.
       "home_goals_ht": 1,
       "away_goals_ht": 0,
       "status": "finished",
-      "venue": "Musterstadt",
+      "venue": "Stadion Rote Erde",
+      "spectators": 1842,
       "source_match_id": "12345"
     }
   ]
@@ -63,6 +64,24 @@ löschen keinen bestehenden Wert. Wer ein Ergebnis wirklich entfernen will,
 tut das von Hand.
 
 `source_match_id` ist optional und dient nur der Rückverfolgbarkeit.
+
+### Spielort und Zuschauer
+
+`venue` ist der **Name** eines Spielorts, `spectators` die Zuschauerzahl.
+
+Ein Import legt **keine** Spielorte an. Steht in der Datei ein Name, den es
+noch nicht gibt, sagt die Vorschau das unter *Hinweise* und lässt das Feld
+offen — der Rest der Zeile wird ganz normal übernommen. Angelegt wird der Ort
+unter *Meine Ligen → Spielorte*, danach greift der nächste Import.
+
+Das ist Absicht: eine Vorschau, die schon schreibt, wäre keine Vorschau. Und
+ein Tippfehler in einer Spalte, die niemand prüft, hätte sonst dauerhaft einen
+falschen Spielort in der Datenbank.
+
+Der Spielort gehört zum **Spiel**, nicht zum Verein. Ausweichplatz, Heimspiel
+beim Gegner, Endspiel auf neutralem Boden — die interessanten Fälle wären mit
+einer festen Zuordnung nicht abzubilden. Mehr dazu in
+[spielorte.md](spielorte.md).
 
 ### Mehrere Terminangaben
 
@@ -97,7 +116,7 @@ wieder annimmt — exportieren, in der Tabellenkalkulation ändern, zurückspiel
 
 ```text
 match_id;round;kickoff_date;kickoff_time;kickoff_confirmed;home;away;
-home_goals;away_goals;home_goals_ht;away_goals_ht;status;venue;note
+home_goals;away_goals;home_goals_ht;away_goals_ht;status;venue;spectators;note
 ```
 
 Erforderlich sind nur `home` und `away`. Unbekannte Spalten werden übergangen

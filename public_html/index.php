@@ -12,7 +12,7 @@ require_once __DIR__ . '/lib/app.php';
 require_once __DIR__ . '/lib/json.php';
 require_once __DIR__ . '/lib/repo.php';
 require_once __DIR__ . '/lib/api/OpenLigaDbApi.php';
-require_once __DIR__ . '/admin/auth.php';
+require_once __DIR__ . '/lib/auth.php';
 
 $config = App::boot();
 
@@ -68,8 +68,6 @@ if ($route === '/api/v1/competitions') {
             'season'    => $row['season_name'],
             'startYear' => (int)$row['start_year'],
             'gender'    => $row['gender'],
-            'region'    => $row['region'],
-            'level'     => $row['level'],
             'teamCount' => $row['team_count'] === null ? null : (int)$row['team_count'],
         ];
     }
@@ -107,8 +105,25 @@ if (preg_match('#^/api/v1/competitions/([^/]+)/seasons/([^/]+)/(matches|table)$#
         }
     }
 
+    $rows = Repo::matches($id, $filter);
+
+    if (($_GET['format'] ?? '') === 'csv') {
+        require_once __DIR__ . '/lib/import/Adapter.php';
+        require_once __DIR__ . '/lib/import/CsvAdapter.php';
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header(sprintf(
+            'Content-Disposition: %s; filename="spielplan-%s-%s.csv"',
+            $download ? 'attachment' : 'inline',
+            $competition['shortcut'],
+            $competition['start_year']
+        ));
+        echo CsvAdapter::export($rows, $timezone);
+        exit;
+    }
+
     $matches = [];
-    foreach (Repo::matches($id, $filter) as $row) {
+    foreach ($rows as $row) {
         $time = kickoff($row['kickoff_utc'], $timezone);
         $matches[] = [
             'id'        => (int)$row['id'],
@@ -127,6 +142,8 @@ if (preg_match('#^/api/v1/competitions/([^/]+)/seasons/([^/]+)/(matches|table)$#
                 'halfTimeAway' => $row['away_goals_ht'] === null ? null : (int)$row['away_goals_ht'],
             ],
             'venue'     => $row['venue_name'],
+            'venueCapacity' => $row['venue_capacity'] === null ? null : (int)$row['venue_capacity'],
+            'spectators'    => $row['spectators'] === null ? null : (int)$row['spectators'],
         ];
     }
 
@@ -261,10 +278,10 @@ a { color:var(--accent); }
   <nav class="zugang">
     <?php if ($angemeldet): ?>
       <span class="wer"><?= h(Auth::username()) ?></span>
-      <a href="admin/" class="knopf">Meine Ligen</a>
+      <a href="meine/" class="knopf">Meine Ligen</a>
     <?php else: ?>
-      <a href="admin/" class="knopf ghost">Anmelden</a>
-      <a href="admin/register.php" class="knopf">Mitmachen</a>
+      <a href="login.php" class="knopf ghost">Anmelden</a>
+      <a href="register.php" class="knopf">Mitmachen</a>
     <?php endif; ?>
   </nav>
 </div>
@@ -281,7 +298,7 @@ a { color:var(--accent); }
 <h2>Wettbewerbe</h2>
 <?php if ($competitions === []): ?>
   <div class="card empty">
-    Noch keine Daten. <a href="admin/">Anmelden</a> und die erste Liga anlegen.
+    Noch keine Daten. <a href="login.php">Anmelden</a> und die erste Liga anlegen.
   </div>
 <?php else: ?>
   <div class="card">
@@ -343,8 +360,8 @@ a { color:var(--accent); }
        deren Besitzer. Gebraucht werden ein Benutzername, eine Mailadresse für das
        Zurücksetzen des Passworts, und ein Passwort. Sonst nichts.</p>
     <div class="aktionen">
-      <a href="admin/register.php" class="knopf">Konto anlegen</a>
-      <a href="admin/" class="knopf ghost">Ich habe schon eins</a>
+      <a href="register.php" class="knopf">Konto anlegen</a>
+      <a href="login.php" class="knopf ghost">Ich habe schon eins</a>
     </div>
   </div>
 <?php endif; ?>

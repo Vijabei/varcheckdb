@@ -32,7 +32,7 @@ final class Encoding
         return mb_convert_encoding($content, 'UTF-8', 'Windows-1252');
     }
 
-    /** Nur zur Anzeige im Adminbereich: welcher Zeichensatz wurde erkannt? */
+    /** Nur zur Anzeige in der Oberflaeche: welcher Zeichensatz wurde erkannt? */
     public static function describe(string $content): string
     {
         if (str_starts_with($content, "\xEF\xBB\xBF")) {
