@@ -5,9 +5,14 @@ public_html/config.php
 # Die schlanken Testfixtures unter tests/fixtures/ sind bewusst NICHT ignoriert.
 samples/
 
-# Erzeugte Importdateien im Hauptordner
-/kicker*.json
-/worldfootball*.html
+# Erzeugte Import- und Exportdateien. Die Testfixtures unter tests/fixtures/
+# sind davon ausgenommen - sie gehoeren versioniert.
+/*.json
+/*.csv
+/*.html
+tools/*.json
+tools/*.csv
+tools/*.html
 
 # Ausrangierte Experimente
 bak/
