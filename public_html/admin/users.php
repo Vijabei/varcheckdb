@@ -23,9 +23,10 @@ function e(?string $v): string
 if (($_POST['action'] ?? '') === 'create' && Auth::tokenValid()) {
     $eingabe = [
         'username'        => trim((string)($_POST['username'] ?? '')),
+        'email'           => trim((string)($_POST['email'] ?? '')),
         'password'        => (string)($_POST['password'] ?? ''),
         'password_repeat' => (string)($_POST['password_repeat'] ?? ''),
-        'role'            => (string)($_POST['role'] ?? Users::ROLE_EDITOR),
+        'role'            => (string)($_POST['role'] ?? Users::ROLE_USER),
         'active'          => 1,
     ];
 
@@ -47,6 +48,7 @@ if (($_POST['action'] ?? '') === 'update' && Auth::tokenValid()) {
     } else {
         $neu = [
             'username'        => $user['username'],
+            'email'           => trim((string)($_POST['email'] ?? '')),
             'role'            => (string)($_POST['role'] ?? $user['role']),
             'active'          => isset($_POST['active']) ? 1 : 0,
             'password'        => (string)($_POST['password'] ?? ''),
@@ -122,13 +124,19 @@ admin_nav('users.php', $config);
     <p class="empty">Noch kein Benutzer angelegt.</p>
   <?php else: ?>
     <table>
-      <thead><tr><th>Name</th><th>Rolle</th><th>Zustand</th><th>Zuletzt angemeldet</th><th></th></tr></thead>
+      <thead><tr><th>Name</th><th>Mailadresse</th><th>Rolle</th><th>Zustand</th><th>Zuletzt angemeldet</th><th></th></tr></thead>
       <tbody>
       <?php foreach ($benutzer as $u): ?>
         <tr>
           <td>
             <?= e($u['username']) ?>
             <?php if ((int)$u['id'] === Auth::userId()): ?><span class="note">(du)</span><?php endif; ?>
+          </td>
+          <td class="note">
+            <?= e($u['email'] ?? '—') ?>
+            <?php if (($u['email'] ?? null) !== null && !Users::isVerified($u)): ?>
+              <span title="noch nicht bestätigt" class="warn">&#9888;</span>
+            <?php endif; ?>
           </td>
           <td><?= e(Users::ROLES[$u['role']] ?? $u['role']) ?></td>
           <td>
@@ -167,6 +175,18 @@ foreach ($benutzer as $u) {
       <input type="hidden" name="token" value="<?= e(Auth::token()) ?>">
       <input type="hidden" name="action" value="update">
       <input type="hidden" name="user_id" value="<?= (int)$ziel['id'] ?>">
+
+      <label for="email_edit">Mailadresse</label>
+      <input type="text" id="email_edit" name="email" value="<?= e($ziel['email'] ?? '') ?>"
+             autocomplete="off" required>
+      <p class="note">
+        <?php if (Users::isVerified($ziel)): ?>
+          Bestätigt am <?= e(substr((string)$ziel['email_verified_at'], 0, 10)) ?>.
+          Eine Änderung setzt das zurück.
+        <?php else: ?>
+          Noch nicht bestätigt &ndash; ein Passwort-Reset ist damit nicht möglich.
+        <?php endif; ?>
+      </p>
 
       <label for="role_edit">Rolle</label>
       <select id="role_edit" name="role">
@@ -230,6 +250,12 @@ foreach ($benutzer as $u) {
         </select>
       </div>
     </div>
+
+    <label for="email">Mailadresse</label>
+    <input type="text" id="email" name="email" value="<?= e($eingabe['email'] ?? '') ?>"
+           autocomplete="off" required>
+    <p class="note">Für das Zurücksetzen des Passworts. Sie gilt zunächst als
+       unbestätigt; der Benutzer bestätigt sie über den Verweis in der Mail.</p>
 
     <div style="display:flex;gap:1rem;flex-wrap:wrap">
       <div style="flex:1;min-width:12rem">

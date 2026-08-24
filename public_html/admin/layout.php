@@ -27,6 +27,7 @@ header .inner { max-width:60rem; margin:0 auto; display:flex; gap:1.25rem; align
 header a { color:#fff; text-decoration:none; opacity:.85; font-size:.92rem; }
 header a:hover, header a.on { opacity:1; text-decoration:underline; }
 header .name { font-weight:700; margin-right:auto; }
+header .wer { opacity:.7; font-size:.92rem; }
 main { max-width:60rem; margin:0 auto; padding:1.5rem 1rem 3rem; }
 h1 { font-size:1.35rem; margin:0 0 1rem; }
 h2 { font-size:1.05rem; margin:1.75rem 0 .6rem; }
@@ -79,9 +80,10 @@ function admin_nav(string $current, array $config): void
     <a href="<?= $file ?>" class="<?= $file === $current ? 'on' : '' ?>"><?= $label ?></a>
   <?php endforeach; ?>
   <a href="../">Öffentliche Seite</a>
-  <a href="index.php?logout=1" title="<?= htmlspecialchars(Auth::username() . ' — ' . (Users::ROLES[Auth::role()] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
-    <?= htmlspecialchars(Auth::username(), ENT_QUOTES, 'UTF-8') ?> abmelden
-  </a>
+  <span class="wer" title="<?= htmlspecialchars(Users::ROLES[Auth::role()] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+    <?= htmlspecialchars(Auth::username(), ENT_QUOTES, 'UTF-8') ?>
+  </span>
+  <a href="index.php?logout=1">Abmelden</a>
 </div></header>
 <main>
 <?php

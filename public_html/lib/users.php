@@ -129,18 +129,25 @@ final class Users
             $errors[] = 'Unbekannte Rolle.';
         }
 
-        $email = self::normalizeEmail((string)($input['email'] ?? ''));
+        // Beim Anlegen ist eine Adresse Pflicht. Beim Aendern nur dann, wenn
+        // das Feld ueberhaupt uebergeben wurde - sonst koennte man einen
+        // Benutzer nicht mehr aendern, ohne seine Adresse mitzuschicken.
+        $emailGefragt = $ignoreId === null || array_key_exists('email', $input);
 
-        if ($email === '') {
-            $errors[] = 'Eine Mailadresse wird gebraucht - ohne sie laesst sich ein '
-                . 'vergessenes Passwort nicht zuruecksetzen.';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = 'Die Mailadresse sieht nicht wie eine Adresse aus.';
-        } else {
-            $vorhandenMail = Db::one('SELECT id FROM users WHERE email_normalized = ?', [$email]);
-            if ($vorhandenMail !== null && (int)$vorhandenMail['id'] !== $ignoreId) {
-                // Keine Auskunft darueber, wem sie gehoert.
-                $errors[] = 'Diese Mailadresse wird bereits verwendet.';
+        if ($emailGefragt) {
+            $email = self::normalizeEmail((string)($input['email'] ?? ''));
+
+            if ($email === '') {
+                $errors[] = 'Eine Mailadresse wird gebraucht - ohne sie laesst sich ein '
+                    . 'vergessenes Passwort nicht zuruecksetzen.';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Die Mailadresse sieht nicht wie eine Adresse aus.';
+            } else {
+                $vorhandenMail = Db::one('SELECT id FROM users WHERE email_normalized = ?', [$email]);
+                if ($vorhandenMail !== null && (int)$vorhandenMail['id'] !== $ignoreId) {
+                    // Keine Auskunft darueber, wem sie gehoert.
+                    $errors[] = 'Diese Mailadresse wird bereits verwendet.';
+                }
             }
         }
 

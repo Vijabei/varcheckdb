@@ -198,3 +198,65 @@ T::same('kicker', (string)Db::value(
     "SELECT s.slug FROM change_log cl JOIN sources s ON s.id = cl.source_id
       WHERE cl.entity_type='match' AND cl.actor = ? LIMIT 1", ['anna']
 ), 'welche Quelle beteiligt war, steht weiterhin daneben');
+
+T::group('Users - was die Formulare uebergeben, muss die Pruefung annehmen');
+
+// Diese Luecke ist im Betrieb aufgefallen: die Mailadresse wurde zur Pflicht,
+// die Formulare im Adminbereich boten aber kein Feld dafuer. Anlegen und
+// Aendern schlugen damit immer fehl. Ein Test, der nur die Pruefung fuer sich
+// betrachtet, findet so etwas nicht.
+fresh_db();
+
+// --- Anlegen, wie admin/users.php es uebergibt
+$vomFormular = [
+    'username'        => 'berta',
+    'email'           => 'berta@example.org',
+    'password'        => 'einLangesPasswort',
+    'password_repeat' => 'einLangesPasswort',
+    'role'            => Users::ROLE_USER,
+    'active'          => 1,
+];
+T::same([], Users::validate($vomFormular), 'das Anlegen-Formular kommt durch');
+
+$bertaId = Users::create($vomFormular, 'webadmin');
+T::same('berta@example.org', (string)Users::find($bertaId)['email'], 'die Adresse wird gespeichert');
+T::same(false, Users::isVerified(Users::find($bertaId)),
+    'vom Webadmin angelegt gilt sie als unbestaetigt - bestaetigen muss der Benutzer selbst');
+
+// --- Aendern, wie admin/users.php es uebergibt
+$geaendert = [
+    'username'        => 'berta',
+    'email'           => 'berta@example.org',
+    'role'            => Users::ROLE_ADMIN,
+    'active'          => 1,
+    'password'        => '',
+    'password_repeat' => '',
+];
+T::same([], Users::validate($geaendert, $bertaId), 'das Aendern-Formular kommt durch');
+T::same(['role'], Users::update($bertaId, $geaendert, 'webadmin'), 'und aendert die Rolle');
+
+// --- Registrierung, wie admin/register.php es uebergibt
+$vonAnmeldung = [
+    'username'        => 'clara',
+    'email'           => 'clara@example.org',
+    'password'        => 'einLangesPasswort',
+    'password_repeat' => 'einLangesPasswort',
+    'role'            => Users::ROLE_USER,
+    'active'          => 1,
+];
+T::same([], Users::validate($vonAnmeldung), 'das Registrierungsformular kommt durch');
+
+T::group('Users - Aendern ohne Adressfeld');
+
+// Wird das Feld gar nicht uebergeben, bleibt die Adresse, wie sie ist -
+// sonst liesse sich ein Benutzer nicht mehr aendern, ohne sie mitzuschicken.
+$ohneFeld = ['username' => 'berta', 'role' => Users::ROLE_USER, 'active' => 1];
+T::same([], Users::validate($ohneFeld, $bertaId), 'eine Teilaenderung ohne Adresse geht durch');
+
+Users::update($bertaId, $ohneFeld, 'webadmin');
+T::same('berta@example.org', (string)Users::find($bertaId)['email'], 'die Adresse steht unveraendert da');
+
+// Beim Anlegen bleibt sie Pflicht.
+T::ok(Users::validate(['username' => 'dora', 'password' => 'einLangesPasswort',
+    'password_repeat' => 'einLangesPasswort', 'role' => Users::ROLE_USER]) !== [],
+    'ohne Adresse laesst sich niemand neu anlegen');
