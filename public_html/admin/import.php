@@ -129,7 +129,7 @@ if (($_POST['action'] ?? '') === 'map' && Auth::tokenValid() && $batch !== null)
         }
 
         if ($choice === 'neu') {
-            $matcher->createTeam($name, 'women', 'senior');
+            $matcher->createTeam($name);
             $created++;
             continue;
         }

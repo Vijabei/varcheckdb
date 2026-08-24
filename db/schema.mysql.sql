@@ -52,18 +52,23 @@ CREATE TABLE clubs (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Ein Mannschaftsname kommt genau einmal vor.
+--
+-- 'Arminia Bielefeld' ist ein Eintrag und wird sowohl im Frauen- als auch im
+-- Maennerwettbewerb verwendet; welcher Wettbewerb gemeint ist, sagt das Spiel.
+-- Geschlecht und Altersklasse stehen deshalb nicht an der Mannschaft: sie
+-- waeren bei einer geteilten Mannschaft schlicht falsch. Wo eine Unterscheidung
+-- noetig ist, steht sie im Namen - 'Arminia Bielefeld U19', 'SGS Essen II'.
 CREATE TABLE teams (
   id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   club_id         BIGINT UNSIGNED  NULL,
   name            VARCHAR(191) NOT NULL,
   name_normalized VARCHAR(191) NOT NULL,
   short_name      VARCHAR(64)      NULL,
-  gender          VARCHAR(16)  NOT NULL DEFAULT '',
-  age_group       VARCHAR(32)  NOT NULL DEFAULT '',
   logo_url        VARCHAR(512)     NULL,
   created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_teams_normalized (name_normalized, gender, age_group),
+  UNIQUE KEY uq_teams_normalized (name_normalized),
   CONSTRAINT fk_teams_club FOREIGN KEY (club_id) REFERENCES clubs (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -38,7 +38,7 @@ T::same(16, count($open), 'alle 16 Mannschaften sind zunaechst unbekannt');
 T::same(0, count($open[0]['suggestions']), 'ohne Bestand gibt es keine Vorschlaege');
 
 foreach ($open as $entry) {
-    $matcher->createTeam($entry['name'], 'women', 'senior');
+    $matcher->createTeam($entry['name']);
 }
 T::same(0, count($matcher->unresolved($parsed['rows'])), 'nach dem Anlegen ist nichts mehr offen');
 

@@ -119,7 +119,7 @@ T::group('4 Import derselben Daten wie im Testlauf');
 $kicker = (new KickerJsonAdapter())->parse(file_get_contents(ROOT . '/tests/fixtures/kicker-sample.json'));
 $matcher = new TeamMatcher();
 foreach ($matcher->unresolved($kicker['rows']) as $entry) {
-    $matcher->createTeam($entry['name'], 'women', 'senior');
+    $matcher->createTeam($entry['name']);
 }
 T::same(16, (int)Db::value('SELECT COUNT(*) FROM teams'), '16 Mannschaften angelegt');
 

@@ -17,7 +17,7 @@ function csv_fixture(): array
 
     $matcher = new TeamMatcher();
     foreach ($matcher->unresolved($parsed['rows']) as $entry) {
-        $matcher->createTeam($entry['name'], 'women', 'senior');
+        $matcher->createTeam($entry['name']);
     }
 
     $csId = competition_season_id('frlw');

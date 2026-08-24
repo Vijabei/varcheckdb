@@ -55,7 +55,7 @@ fresh_db();
 $kicker = (new KickerJsonAdapter())->parse(file_get_contents(ROOT . '/tests/fixtures/kicker-sample.json'));
 $matcher = new TeamMatcher();
 foreach ($matcher->unresolved($kicker['rows']) as $entry) {
-    $matcher->createTeam($entry['name'], 'women', 'senior');
+    $matcher->createTeam($entry['name']);
 }
 
 // ... dann die abweichenden worldfootball-Namen zuordnen.

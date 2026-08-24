@@ -70,6 +70,21 @@ hat.
 
 ## Erledigt seit den letzten Notizen
 
+**Mannschaftsnamen sind eindeutig.** Ein Name, ein Eintrag — über alle
+Wettbewerbe hinweg. Vorher war ein Name nur zusammen mit Geschlecht und
+Altersklasse eindeutig, wodurch „Arminia Bielefeld" doppelt existieren konnte.
+
+Geprüft an echten Daten aus vier Ligen (Frauen West, Süd, Nord und Männer
+West, zusammen 60 Mannschaften): **kein einziger Name kommt in zwei Ligen
+vor.** Die Quellen unterscheiden selbst sauber — die Männer-Regionalliga führt
+„Borussia Dortmund II", die Frauen-Regionalliga „Borussia Dortmund". Wo
+dieselbe Elf gemeint ist, ist es künftig auch derselbe Eintrag.
+
+`db/migrations/2026-08-24-mannschaftsnamen-eindeutig.sql` stellt bestehende
+Installationen um. Sie prüft zuerst auf doppelte Namen und beschreibt, wie
+zusammengeführt wird; ohne Zusammenführung bricht der Umbau ab, statt
+stillschweigend etwas zu verwerfen.
+
 **Wettbewerbe verwalten.** Anlegen und Entfernen im Adminbereich. Das
 Entfernen zeigt vorher, was daran hängt — Spiele, Spieltage,
 Herkunftsvermerke, Importvorgänge — und weist gesondert aus, wie viele davon

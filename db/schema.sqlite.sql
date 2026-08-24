@@ -54,11 +54,9 @@ CREATE TABLE teams (
   name TEXT NOT NULL,
   name_normalized TEXT NOT NULL,
   short_name TEXT NULL,
-  gender TEXT NOT NULL DEFAULT '',
-  age_group TEXT NOT NULL DEFAULT '',
   logo_url TEXT NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE (name_normalized, gender, age_group),
+  UNIQUE (name_normalized),
   CONSTRAINT fk_teams_club FOREIGN KEY (club_id) REFERENCES clubs (id)
 );
 

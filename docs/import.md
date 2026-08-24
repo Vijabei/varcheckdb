@@ -122,6 +122,14 @@ bestätigt. Unberührte Felder bleiben unberührt.
 
 ## Mannschaften zuordnen
 
+**Ein Mannschaftsname kommt genau einmal vor.** „Arminia Bielefeld" ist ein
+Eintrag und steht im Frauen- wie im Männerwettbewerb; welcher gemeint ist,
+sagt das Spiel. Geschlecht und Altersklasse hängen deshalb am Wettbewerb, nicht
+an der Mannschaft — an einer geteilten Mannschaft wären sie schlicht falsch.
+
+Wo eine Unterscheidung nötig ist, trägt der Name sie bereits: „Arminia
+Bielefeld U19", „SGS Essen II". Das ist auch die Schreibweise der Quellen.
+
 Beim ersten Import ist jeder Name unbekannt. Die Vorschläge sind bewusst
 zurückhaltend: automatisch zugeordnet wird nur bei einem exakten Treffer.
 Alles andere wird vorgeschlagen und einmal bestätigt; die Bestätigung wird als

@@ -113,14 +113,32 @@ final class TeamMatcher
         $this->index[$normalized] = $teamId;
     }
 
-    /** Legt ein neues Team an und merkt sich den Quellnamen. */
-    public function createTeam(string $name, string $gender = '', string $ageGroup = ''): int
+    /**
+     * Legt eine neue Mannschaft an.
+     *
+     * Ein Name kommt genau einmal vor und ist nicht an Geschlecht oder
+     * Altersklasse gebunden: dieselbe 'Arminia Bielefeld' steht im Frauen-
+     * wie im Maennerwettbewerb. Wo eine Unterscheidung noetig ist, traegt der
+     * Name sie bereits - 'Arminia Bielefeld U19', 'SGS Essen II'.
+     */
+    public function createTeam(string $name): int
     {
+        $normalisiert = Normalize::strict($name);
+
+        // Zwei Schreibweisen koennen auf denselben Schluessel fallen -
+        // 'FC Köln' und 'FC Koeln' etwa. Dann ist es dieselbe Mannschaft,
+        // und der Name, der zuerst da war, bleibt stehen.
+        $vorhanden = Db::value('SELECT id FROM teams WHERE name_normalized = ?', [$normalisiert]);
+
+        if ($vorhanden !== null) {
+            $this->index[$normalisiert] = (int)$vorhanden;
+
+            return (int)$vorhanden;
+        }
+
         $teamId = Db::insert('teams', [
             'name'            => $name,
-            'name_normalized' => Normalize::strict($name),
-            'gender'          => $gender,
-            'age_group'       => $ageGroup,
+            'name_normalized' => $normalisiert,
         ]);
 
         $this->teams[$teamId] = ['id' => $teamId, 'name' => $name];

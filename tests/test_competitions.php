@@ -86,7 +86,7 @@ fresh_db();
 $parsed = (new KickerJsonAdapter())->parse(file_get_contents(ROOT . '/tests/fixtures/kicker-sample.json'));
 $matcher = new TeamMatcher();
 foreach ($matcher->unresolved($parsed['rows']) as $entry) {
-    $matcher->createTeam($entry['name'], 'women', 'senior');
+    $matcher->createTeam($entry['name']);
 }
 $csId = competition_season_id('frlw');
 $kicker = Db::one('SELECT id, priority FROM sources WHERE slug = ?', ['kicker']);
@@ -153,8 +153,8 @@ T::group('Competitions - benutzte Mannschaften bleiben geschuetzt');
 
 fresh_db();
 $matcher = new TeamMatcher();
-$a = $matcher->createTeam('Verein A', 'women', 'senior');
-$b = $matcher->createTeam('Verein B', 'women', 'senior');
+$a = $matcher->createTeam('Verein A');
+$b = $matcher->createTeam('Verein B');
 $csId = competition_season_id('frlw');
 $roundId = Db::insert('rounds', ['competition_season_id' => $csId, 'number' => 1, 'name' => '1. Spieltag']);
 Db::insert('matches', [
